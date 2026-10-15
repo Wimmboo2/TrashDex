@@ -1,0 +1,2 @@
+# TrashDex
+school project
