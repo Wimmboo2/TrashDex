@@ -2,6 +2,7 @@ import { AppError, errorResponse } from "@/lib/errors";
 import { isDatabaseConfigured } from "@/lib/db";
 import { getRequestId } from "@/lib/http";
 import { logError } from "@/lib/logger";
+import { getConfusingItems, MIN_FEEDBACK_RESPONSES } from "@/lib/analytics";
 import { getLeaderboard } from "@/lib/scan-store";
 
 export const runtime = "nodejs";
@@ -26,10 +27,25 @@ export async function GET(request: Request) {
         ? requestedLimit
         : 20;
 
+    const view = url.searchParams.get("view") === "confusing" ? "confusing" : "scanned";
+
+    if (view === "confusing") {
+      const items = await getConfusingItems({ limit });
+      return Response.json(
+        { view, items, minFeedback: MIN_FEEDBACK_RESPONSES, generatedAt: new Date().toISOString() },
+        {
+          headers: {
+            "cache-control": "public, s-maxage=60, stale-while-revalidate=300",
+            "x-request-id": requestId,
+          },
+        },
+      );
+    }
+
     const items = await getLeaderboard(limit);
 
     return Response.json(
-      { items, generatedAt: new Date().toISOString() },
+      { view, items, generatedAt: new Date().toISOString() },
       {
         headers: {
           "cache-control": "public, s-maxage=60, stale-while-revalidate=300",

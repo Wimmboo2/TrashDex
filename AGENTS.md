@@ -32,6 +32,15 @@ The user has explicitly allowed installs, builds, tests, browser automation, and
 - No accounts, no image storage, no tracking scripts.
 - Disposal guidance is general Indonesia-oriented guidance, not verified local rules.
 - Mock AI modes are test-only: `MOCK_AI=true`, `not-waste`, `low`, `error`. Never enable in production.
+- Scope: scanner, feedback, leaderboard, and insights. Do not add gamification, accounts, browser-local progress, or third-party services.
+
+## Metrics
+
+- Queries live in `lib/analytics.ts`. Aggregation stays in SQL.
+- Reported correctness uses feedback as the denominator, never scans.
+- A confusing-item ranking needs at least `MIN_FEEDBACK_RESPONSES` (5) feedback responses per item.
+- Daily buckets use `Asia/Jakarta`.
+- Never seed or fabricate production data to make a view look populated.
 
 ## Neon
 
@@ -66,8 +75,8 @@ These require Playwright and a running app. They write screenshots to `artifacts
 
 ## Current status
 
-- Stage 1 and Stage 2 are implemented.
-- Build, lint, smoke tests, database checks, and browser screenshots passed in DeepInfra Sandbox.
+- Stage 1, Stage 2, and Stage 3 are implemented.
+- Build, lint, smoke tests, database checks, and browser screenshots for Stage 1 and 2 passed in DeepInfra Sandbox.
 - Real Gemini classification has not been verified because no `GEMINI_API_KEY` was available.
 - Nothing is deployed.
 - Verification sandboxes have been terminated.

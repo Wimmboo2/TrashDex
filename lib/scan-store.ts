@@ -36,17 +36,22 @@ export async function getLeaderboard(limit = 20): Promise<LeaderboardItem[]> {
     displayName: string;
     materialGroup: MaterialGroup;
     scanCount: number;
+    share: number;
   }>(
     `select
        ci.slug as "canonicalItem",
        ci.display_name as "displayName",
        ci.material_group as "materialGroup",
-       count(s.id)::int as "scanCount"
+       count(s.id)::int as "scanCount",
+       case
+         when sum(count(s.id)) over () = 0 then 0
+         else count(s.id)::float8 / sum(count(s.id)) over ()
+       end as "share"
      from canonical_items ci
      join scans s on s.canonical_item = ci.slug
      group by ci.slug, ci.display_name, ci.material_group
      order by count(s.id) desc, ci.display_name asc
-     limit $1`,
+     limit $1::int`,
     [limit],
   );
 

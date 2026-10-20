@@ -61,10 +61,15 @@ export default function HomePage() {
             Every scan gives you the item, the material, the stream, and a short disposal plan. When
             the model is unsure, it says so instead of pretending.
           </p>
-          <Link className="btn btn-secondary" href="/leaderboard">
-            Browse the item leaderboard
-            <Icon name="arrow-right" size={17} />
-          </Link>
+          <div className="hero-actions">
+            <Link className="btn btn-secondary" href="/leaderboard">
+              Browse the item leaderboard
+              <Icon name="arrow-right" size={17} />
+            </Link>
+            <Link className="btn btn-ghost" href="/insights">
+              Open the insights dashboard
+            </Link>
+          </div>
         </div>
         <div className="feature-list">
           <div className="feature">

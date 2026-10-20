@@ -32,6 +32,29 @@ code=$(status "$BASE/api/leaderboard")
 grep -q '"items"' "$TMP/body.json" || fail "leaderboard api missing items"
 pass "leaderboard api responds"
 
+code=$(status "$BASE/api/leaderboard?view=confusing")
+[ "$code" = "200" ] || fail "confusing leaderboard api returned $code"
+grep -q '"view":"confusing"' "$TMP/body.json" || fail "confusing leaderboard api missing view"
+grep -q '"minFeedback"' "$TMP/body.json" || fail "confusing leaderboard api missing minFeedback"
+pass "confusing leaderboard api responds"
+
+code=$(status "$BASE/leaderboard?view=confusing")
+[ "$code" = "200" ] || fail "confusing leaderboard page returned $code"
+grep -q "Most confusing items" "$TMP/body.json" || fail "confusing leaderboard page missing heading"
+pass "confusing leaderboard page renders"
+
+code=$(status "$BASE/api/insights")
+[ "$code" = "200" ] || fail "insights api returned $code"
+grep -q '"overview"' "$TMP/body.json" || fail "insights api missing overview"
+grep -q '"dailyScans"' "$TMP/body.json" || fail "insights api missing dailyScans"
+grep -q '"reportedCorrectnessRate"' "$TMP/body.json" || fail "insights api missing correctness rate"
+pass "insights api responds"
+
+code=$(status "$BASE/insights?range=30")
+[ "$code" = "200" ] || fail "insights page returned $code"
+grep -q "What the scans say" "$TMP/body.json" || fail "insights page missing heading"
+pass "insights page renders"
+
 code=$(status -X POST "$BASE/api/scan")
 [ "$code" = "400" ] || fail "empty scan returned $code"
 pass "empty scan rejected"
@@ -65,6 +88,7 @@ pass "missing scan feedback rejected"
 code=$(status "$BASE/api/leaderboard")
 [ "$code" = "200" ] || fail "leaderboard api after scan returned $code"
 grep -q '"scanCount"' "$TMP/body.json" || fail "leaderboard missing scanCount"
+grep -q '"share"' "$TMP/body.json" || fail "leaderboard missing share"
 pass "leaderboard includes stored scan"
 
 echo "All smoke tests passed."

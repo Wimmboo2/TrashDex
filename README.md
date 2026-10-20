@@ -19,7 +19,8 @@ TrashDex is a gamified waste scanner built for a school project in Indonesia. Up
 - Deterministic disposal rules, separate from the AI
 - Confidence and uncertainty states, including a not-a-waste-item state
 - Anonymous feedback per scan, stored as unverified
-- Public item leaderboard with server-side aggregation
+- Public leaderboard with a most-scanned view and a most-confusing view
+- Insights dashboard with scan activity, material mix, and reported correctness
 - Per-IP rate limits stored in Postgres
 - No accounts, no image storage, no tracking scripts
 
@@ -37,6 +38,30 @@ Copy `.env.example` to `.env.local` and fill in:
 ## Database
 
 Apply `db/schema.sql` to the Neon database. It creates the tables and seeds the 37 canonical item types.
+
+## Metrics and what they mean
+
+All aggregation happens in SQL on the server. Nothing is calculated in the browser from a full scan list.
+
+| Metric | Definition |
+| --- | --- |
+| Recorded scans | Every row in `scans`. |
+| Item types scanned | Distinct `canonical_item` values in `scans`. |
+| Feedback responses | Every row in `scan_feedback`. |
+| Reported correctness | Feedback marked correct, out of all feedback. The denominator is feedback, not scans. |
+| Reported confusion | Feedback marked incorrect, out of all feedback for that item. |
+| Confusing ranking | Items with at least `MIN_FEEDBACK_RESPONSES` (5) feedback responses, ranked by reported confusion. |
+| Scan activity | Scans per calendar day in `Asia/Jakarta`, including days with no scans. |
+| Material mix | Share of scans per material group inside the selected date range. |
+
+Reported confusion is not a confirmed error rate. Corrections are stored as unverified feedback, and an item below the feedback threshold is never ranked.
+
+## API
+
+- `POST /api/scan` classifies one image and stores the scan.
+- `POST /api/feedback` stores one feedback response per scan.
+- `GET /api/leaderboard?view=scanned|confusing&limit=20`
+- `GET /api/insights?range=7|30`
 
 ## Commands
 
