@@ -216,7 +216,6 @@ export function ScanExperience() {
     <section className="scanner-card" aria-labelledby="scanner-title" aria-busy={phase === "loading"}>
       <div className="scanner-top">
         <div>
-          <p className="scanner-kicker">Specimen intake</p>
           <h2 id="scanner-title">Scan a waste item</h2>
         </div>
         <span className={`status-pill status-${phase}`}>{statusLabel}</span>

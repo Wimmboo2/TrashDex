@@ -37,7 +37,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <header className="site-header">
             <Link href="/" className="brand" aria-label="TrashDex home">
               <span className="brand-mark" aria-hidden="true">
-                T
+                <svg viewBox="0 0 64 64" role="presentation" focusable="false">
+                  <rect width="64" height="64" rx="18" fill="#8c491a" />
+                  <path
+                    d="M18 22h28M26 22v-4h12v4M22 22l2 26h16l2-26"
+                    fill="none"
+                    stroke="#f5ead8"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </span>
               <span>TrashDex</span>
             </Link>
