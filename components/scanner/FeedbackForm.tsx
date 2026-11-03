@@ -28,6 +28,19 @@ export function FeedbackForm({
   const [materialGroup, setMaterialGroup] = useState("");
   const [wasteStream, setWasteStream] = useState("");
 
+  if (mode === "done") {
+    return (
+      <div className="feedback">
+        <div className="feedback-recorded" role="status">
+          <span className="feedback-recorded-icon">
+            <Icon name="check" size={18} />
+          </span>
+          <p>{message || "Thanks. Your feedback was recorded."}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!scanId) {
     return (
       <div className="feedback">
@@ -88,17 +101,6 @@ export function FeedbackForm({
     }
   }
 
-  if (mode === "done") {
-    return (
-      <div className="feedback">
-        <p className="feedback-done" role="status">
-          <Icon name="check" size={17} />
-          {message}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="feedback">
       <div className="feedback-head">
@@ -115,7 +117,7 @@ export function FeedbackForm({
             disabled={isSending}
           >
             <Icon name="check" size={17} />
-            Yes, it is right
+            {isSending ? "Sending..." : "Yes, it is right"}
           </button>
           <button
             type="button"

@@ -7,7 +7,9 @@ import { ResultCard } from "@/components/scanner/ResultCard";
 import { Icon } from "@/components/ui/Icon";
 import type { ApiErrorBody, NotWasteResult, ScanResultPayload, WasteResult } from "@/lib/types";
 
-type Phase = "idle" | "preview" | "loading" | "success" | "error";
+type Phase = "idle" | "preview" | "loading" | "cancelled" | "success" | "error";
+
+const SLOW_SCAN_MS = 8_000;
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_INPUT_BYTES = 12 * 1024 * 1024;
@@ -59,10 +61,12 @@ export function ScanExperience() {
   const [scanId, setScanId] = useState<string | null>(null);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [slowScan, setSlowScan] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -72,9 +76,18 @@ export function ScanExperience() {
 
   useEffect(() => {
     return () => {
+      requestIdRef.current += 1;
       abortRef.current?.abort();
+      abortRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (phase !== "loading") return;
+
+    const timer = window.setTimeout(() => setSlowScan(true), SLOW_SCAN_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
 
   async function handleFile(selected: File) {
     setFileError(null);
@@ -109,6 +122,7 @@ export function ScanExperience() {
   }
 
   function reset() {
+    requestIdRef.current += 1;
     abortRef.current?.abort();
     abortRef.current = null;
     setPhase("idle");
@@ -124,12 +138,16 @@ export function ScanExperience() {
   async function analyze() {
     if (!file) return;
 
+    const requestId = ++requestIdRef.current;
+    setSlowScan(false);
     setPhase("loading");
     setError(null);
 
     const controller = new AbortController();
     abortRef.current = controller;
-    const timeout = window.setTimeout(() => controller.abort(), 45_000);
+    const timeout = window.setTimeout(() => {
+      if (abortRef.current === controller) controller.abort();
+    }, 45_000);
 
     try {
       const body = new FormData();
@@ -141,10 +159,14 @@ export function ScanExperience() {
         signal: controller.signal,
       });
 
+      if (requestId !== requestIdRef.current) return;
+
       const data = (await response.json().catch(() => null)) as
         | ScanResultPayload
         | ApiErrorBody
         | null;
+
+      if (requestId !== requestIdRef.current) return;
 
       if (!response.ok) {
         const message =
@@ -174,6 +196,14 @@ export function ScanExperience() {
       }
       setPhase("success");
     } catch (caught) {
+      if (requestId !== requestIdRef.current) return;
+
+      if (controller.signal.reason === "cancelled") {
+        setError(null);
+        setPhase("cancelled");
+        return;
+      }
+
       if (caught instanceof DOMException && caught.name === "AbortError") {
         setError({
           code: "UPSTREAM_TIMEOUT",
@@ -188,13 +218,17 @@ export function ScanExperience() {
       setPhase("error");
     } finally {
       window.clearTimeout(timeout);
-      abortRef.current = null;
+      if (abortRef.current === controller) abortRef.current = null;
     }
   }
 
   function cancel() {
-    abortRef.current?.abort();
-    setPhase("preview");
+    requestIdRef.current += 1;
+    const controller = abortRef.current;
+    abortRef.current = null;
+    controller?.abort("cancelled");
+    setError(null);
+    setPhase((current) => (current === "loading" ? "cancelled" : current));
   }
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -206,11 +240,13 @@ export function ScanExperience() {
   const statusLabel =
     phase === "loading"
       ? "Analyzing"
-      : phase === "success"
-        ? "Result"
-        : phase === "error"
-          ? "Try again"
-          : "Ready";
+      : phase === "cancelled"
+        ? "Cancelled"
+        : phase === "success"
+          ? "Result"
+          : phase === "error"
+            ? "Try again"
+            : "Ready";
 
   return (
     <section className="scanner-card" aria-labelledby="scanner-title" aria-busy={phase === "loading"}>
@@ -246,11 +282,13 @@ export function ScanExperience() {
         />
       ) : null}
 
-      {(phase === "preview" || phase === "loading") && previewUrl ? (
+      {(phase === "preview" || phase === "loading" || phase === "cancelled") && previewUrl ? (
         <>
           <PreviewPanel
             previewUrl={previewUrl}
             isLoading={phase === "loading"}
+            slow={phase === "loading" && slowScan}
+            cancelled={phase === "cancelled"}
             onAnalyze={() => void analyze()}
             onReplace={() => uploadInputRef.current?.click()}
             onRemove={reset}
