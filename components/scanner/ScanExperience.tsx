@@ -450,27 +450,40 @@ export function ScanExperience() {
       ) : null}
 
       {phase === "error" && visibleError ? (
-        <div className="error-panel" role="alert">
-          <div className="error-icon">
-            <Icon name="alert" size={24} />
+        <>
+          {previewUrl ? (
+            <div className="preview-frame">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewUrl} alt={text.scanner.previewAlt} />
+            </div>
+          ) : null}
+          <div className="error-panel" role="alert">
+            <div className="error-icon">
+              <Icon name="alert" size={24} />
+            </div>
+            <div>
+              <h3>
+                <StableText block text={text.scanner.failedTitle} reserve={reserve.scanner.failedTitle} />
+              </h3>
+              <p>
+                <StableText block text={visibleError.message} reserve={visibleError.reserve} />
+              </p>
+              <p className="error-code">
+                <StableText text={text.scanner.reference} reserve={reserve.scanner.reference} />:{" "}
+                {visibleError.code}
+              </p>
+            </div>
+            <div className="preview-actions">
+              <button type="button" className="btn btn-primary" onClick={() => void analyze()}>
+                <Icon name="refresh" size={17} />
+                <StableText text={text.scanner.tryAgain} reserve={reserve.scanner.tryAgain} />
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={reset}>
+                <StableText text={text.scanner.tryAnother} reserve={reserve.scanner.tryAnother} />
+              </button>
+            </div>
           </div>
-          <div>
-            <h3>
-              <StableText block text={text.scanner.failedTitle} reserve={reserve.scanner.failedTitle} />
-            </h3>
-            <p>
-              <StableText block text={visibleError.message} reserve={visibleError.reserve} />
-            </p>
-            <p className="error-code">
-              <StableText text={text.scanner.reference} reserve={reserve.scanner.reference} />:{" "}
-              {visibleError.code}
-            </p>
-          </div>
-          <button type="button" className="btn btn-primary" onClick={reset}>
-            <Icon name="refresh" size={17} />
-            <StableText text={text.scanner.tryAnother} reserve={reserve.scanner.tryAnother} />
-          </button>
-        </div>
+        </>
       ) : null}
     </section>
   );

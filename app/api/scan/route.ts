@@ -16,6 +16,22 @@ export const maxDuration = 60;
 const MULTIPLE_ITEMS_MESSAGE =
   "Several items are in this photo. Photograph a single item so it fills most of the frame.";
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
+}
+
+function cancelledResponse(requestId: string, startedAt: number): Response {
+  logInfo("scan_cancelled", {
+    requestId,
+    durationMs: Date.now() - startedAt,
+  });
+
+  return new Response(null, {
+    status: 499,
+    headers: { "cache-control": "no-store", "x-request-id": requestId },
+  });
+}
+
 function capConfidence(
   confidence: Confidence,
   uncertaintyReason: string,
@@ -85,7 +101,7 @@ export async function POST(request: Request) {
     }
 
     const image = await readValidatedImage(file);
-    const classification = await classifyWasteImage(image);
+    const classification = await classifyWasteImage(image, request.signal);
 
     if (classification.multipleItems) {
       const payload: ScanResultPayload = {
@@ -175,6 +191,10 @@ export async function POST(request: Request) {
       parseDisposalContext(form.get("context")),
     );
 
+    if (request.signal.aborted) {
+      return cancelledResponse(requestId, startedAt);
+    }
+
     let scanId: string | null = null;
     try {
       scanId = await saveScan({
@@ -222,6 +242,10 @@ export async function POST(request: Request) {
       headers: { "cache-control": "no-store", "x-request-id": requestId },
     });
   } catch (error) {
+    if (request.signal.aborted || isAbortError(error)) {
+      return cancelledResponse(requestId, startedAt);
+    }
+
     if (error instanceof AppError) {
       logInfo("scan_rejected", {
         requestId,
