@@ -1,5 +1,9 @@
+"use client";
+
 import type { CSSProperties } from "react";
-import { MATERIAL_GROUP_LABELS } from "@/lib/taxonomy";
+import { useI18n } from "@/components/i18n/LanguageProvider";
+import { fill } from "@/lib/i18n/messages";
+import { itemLabel, materialLabel } from "@/lib/i18n/labels";
 import type { ConfusingItem } from "@/lib/types";
 
 export function ConfusingList({
@@ -9,8 +13,10 @@ export function ConfusingList({
   items: ConfusingItem[];
   minFeedback: number;
 }) {
+  const { locale, copy: text } = useI18n();
+
   return (
-    <ol className="leaderboard-list" aria-label="Items with the most reported confusion">
+    <ol className="leaderboard-list" aria-label={text.leaderboard.confusingListLabel}>
       {items.map((item, index) => {
         const rate = Math.round(item.negativeRate * 100);
         return (
@@ -24,22 +30,28 @@ export function ConfusingList({
               {String(item.rank).padStart(2, "0")}
             </span>
             <div className="leaderboard-item">
-              <h2>{item.displayName}</h2>
+              <h2>{itemLabel(locale, item.canonicalItem, item.displayName)}</h2>
               <p>
-                {MATERIAL_GROUP_LABELS[item.materialGroup]}
-                <span className="leaderboard-share-text"> {rate}% reported incorrect</span>
+                {materialLabel(locale, item.materialGroup)}
+                <span className="leaderboard-share-text">
+                  {" "}
+                  {rate}% {text.leaderboard.reportedIncorrect}
+                </span>
               </p>
               <span className="share-line is-confusion" aria-hidden="true">
                 <span style={{ width: `${rate}%` }} />
               </span>
               <p className="muted-small confusion-detail">
-                {item.negativeCount} of {item.feedbackCount} feedback responses marked
-                incorrect. {item.feedbackCount} responses, minimum {minFeedback}.
+                {fill(text.leaderboard.confusionDetail, {
+                  negative: item.negativeCount,
+                  total: item.feedbackCount,
+                  min: minFeedback,
+                })}
               </p>
             </div>
             <div className="leaderboard-count">
               <span>{rate}%</span>
-              <small>confusion</small>
+              <small>{text.leaderboard.confusion}</small>
             </div>
           </li>
         );

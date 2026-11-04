@@ -1,15 +1,22 @@
-import { DIVERSION_METHOD } from "@/lib/metrics";
+"use client";
+
+import { useI18n } from "@/components/i18n/LanguageProvider";
+import { fill } from "@/lib/i18n/messages";
+import { formatCount } from "@/lib/format";
 import type { Overview } from "@/lib/types";
 
 export function ImpactSummary({
   overview,
   minFeedback,
-  detail = "All time.",
+  detail,
 }: {
   overview: Overview;
   minFeedback: number;
-  detail?: string;
+  detail: string;
 }) {
+  const { locale, copy: text } = useI18n();
+  const count = (value: number) => formatCount(value, locale);
+
   const correctness =
     overview.reportedCorrectnessRate === null
       ? "—"
@@ -18,37 +25,37 @@ export function ImpactSummary({
   const correctnessNote =
     overview.reportedCorrectnessRate === null
       ? overview.feedbackCount === 0
-        ? `No feedback yet. A rate appears after ${minFeedback} responses.`
-        : `${overview.feedbackCount} of ${minFeedback} responses. The rate stays hidden until then.`
-      : "Correct marks divided by feedback responses, not by scans.";
+        ? fill(text.insights.noFeedback, { min: minFeedback })
+        : fill(text.insights.partialFeedback, {
+            count: count(overview.feedbackCount),
+            min: minFeedback,
+          })
+      : text.insights.correctnessNote;
 
   const diversionNote =
     overview.totalScans === 0
-      ? "No scans yet, so there is nothing to estimate."
-      : `of ${overview.totalScans.toLocaleString("en-US")} scans in a sortable stream.`;
+      ? text.insights.diversionEmpty
+      : fill(text.insights.diversionNote, { count: count(overview.totalScans) });
 
   const stats = [
     {
-      label: "Items scanned",
-      value: overview.totalScans.toLocaleString("en-US"),
-      note: "All stored scans. Not limited to 7 or 30 days.",
+      label: text.insights.itemsScanned,
+      value: count(overview.totalScans),
+      note: text.insights.itemsScannedNote,
     },
     {
-      label: "Item types",
-      value: overview.uniqueItems.toLocaleString("en-US"),
-      note: "Distinct item types among those scans.",
+      label: text.insights.itemTypes,
+      value: count(overview.uniqueItems),
+      note: text.insights.itemTypesNote,
     },
     {
-      label: "Reported correctness",
+      label: text.insights.correctness,
       value: correctness,
       note: correctnessNote,
     },
     {
-      label: "Rough diversion",
-      value:
-        overview.totalScans === 0
-          ? "—"
-          : overview.divertableScans.toLocaleString("en-US"),
+      label: text.insights.diversion,
+      value: overview.totalScans === 0 ? "—" : count(overview.divertableScans),
       note: diversionNote,
     },
   ];
@@ -56,7 +63,7 @@ export function ImpactSummary({
   return (
     <section className="impact-summary" aria-labelledby="impact-title">
       <div className="impact-head">
-        <h2 id="impact-title">Impact summary</h2>
+        <h2 id="impact-title">{text.insights.impactTitle}</h2>
         <p className="muted-small">{detail}</p>
       </div>
       <dl className="stat-grid">
@@ -68,7 +75,7 @@ export function ImpactSummary({
           </div>
         ))}
       </dl>
-      <p className="impact-method">{DIVERSION_METHOD}</p>
+      <p className="impact-method">{text.insights.diversionMethod}</p>
     </section>
   );
 }

@@ -20,10 +20,10 @@ export default async function InsightsPage({
   const range = parseAnalyticsRange(rawRange);
 
   let datasets: Record<7 | 30, InsightsData> | null = null;
-  let error: string | null = null;
+  let error: "unconfigured" | "unavailable" | null = null;
 
   if (!isDatabaseConfigured()) {
-    error = "The insights dashboard is not configured yet. Add DATABASE_URL on the server.";
+    error = "unconfigured";
   } else {
     // Both ranges load together, so switching the range is instant instead of
     // waiting for another server round trip.
@@ -31,7 +31,7 @@ export default async function InsightsPage({
       const [sevenDays, thirtyDays] = await Promise.all([getInsights(7), getInsights(30)]);
       datasets = { 7: sevenDays, 30: thirtyDays };
     } catch {
-      error = "The insights dashboard is temporarily unavailable. Try again in a moment.";
+      error = "unavailable";
     }
   }
 

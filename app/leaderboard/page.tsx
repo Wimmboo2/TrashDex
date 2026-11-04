@@ -25,10 +25,10 @@ export default async function LeaderboardPage({
   let confusingItems: ConfusingItem[] = [];
   let overview: Overview | null = null;
   let updatedAt: string | null = null;
-  let error: string | null = null;
+  let error: "unconfigured" | "unavailable" | null = null;
 
   if (!isDatabaseConfigured()) {
-    error = "The leaderboard is not configured yet. Add DATABASE_URL on the server.";
+    error = "unconfigured";
   } else {
     // Both views load together, so switching tabs is instant instead of waiting
     // for another server round trip.
@@ -43,7 +43,7 @@ export default async function LeaderboardPage({
       overview = summary;
       updatedAt = new Date().toISOString();
     } catch {
-      error = "The leaderboard is temporarily unavailable. Try again in a moment.";
+      error = "unavailable";
     }
   }
 

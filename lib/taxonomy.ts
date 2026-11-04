@@ -107,7 +107,7 @@ export const MATERIAL_GROUP_LABELS: Record<MaterialGroup, string> = {
 export const WASTE_STREAM_LABELS: Record<WasteStream, string> = {
   recycling: "Recycling",
   organic: "Organic",
-  hazardous: "Hazardous (B3)",
+  hazardous: "Hazardous",
   electronic: "E-waste",
   textile: "Textile",
   landfill: "Residual",
