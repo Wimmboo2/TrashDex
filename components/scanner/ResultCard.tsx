@@ -39,14 +39,16 @@ export function ResultCard({
   onReset: () => void;
   onFeedbackSubmitted?: () => void;
 }) {
-  const uncertainty =
-    result.uncertaintyReason ||
+  const explanation =
+    result.uncertaintyReason.trim() ||
     (result.confidence === "low"
       ? "The model is not fully sure about this item. Check the material before sorting."
-      : "");
+      : result.confidence === "medium"
+        ? "Check this result before you sort it."
+        : "");
 
   return (
-    <article className="result-card" aria-live="polite">
+    <article className={`result-card result-${result.confidence}`} aria-live="polite">
       <div className="result-head">
         <div className="result-identity">
           {imageUrl ? (
@@ -71,11 +73,11 @@ export function ResultCard({
         AI confidence is a qualitative estimate, not a measured probability.
       </p>
 
-      {uncertainty ? (
-        <p className="uncertainty">
-          <Icon name="alert" size={17} />
-          <span>{uncertainty}</span>
-        </p>
+      {result.confidence !== "high" && explanation ? (
+        <div className={`confidence-callout is-${result.confidence}`} role="status">
+          <p className="confidence-callout-kicker">{CONFIDENCE_LABELS[result.confidence]}</p>
+          <p>{explanation}</p>
+        </div>
       ) : null}
 
       <div className="stream-row">

@@ -31,7 +31,7 @@ The user has explicitly allowed installs, builds, tests, browser automation, and
 - The app uses `pg` with raw SQL, not an ORM.
 - No accounts, no image storage, no tracking scripts.
 - Disposal guidance is general Indonesia-oriented guidance, not verified local rules.
-- Mock AI modes are test-only: `MOCK_AI=true`, `not-waste`, `low`, `error`. Never enable in production.
+- Mock AI modes are test-only: `MOCK_AI=true`, `not-waste`, `low`, `uncertain`, `multiple`, `error`. Never enable in production.
 - Scope: scanner, feedback, leaderboard, and insights. Do not add gamification, accounts, browser-local progress, or third-party services.
 
 ## Metrics

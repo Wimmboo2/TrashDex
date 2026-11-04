@@ -6,12 +6,26 @@ import { assertSameOrigin, getClientIp, getRequestId } from "@/lib/http";
 import { logError, logInfo } from "@/lib/logger";
 import { checkRateLimit, hashIp } from "@/lib/rate-limit";
 import { saveScan } from "@/lib/scan-store";
-import { getCanonicalItem } from "@/lib/taxonomy";
+import { getCanonicalItem, type Confidence } from "@/lib/taxonomy";
 import type { ScanAlternative, ScanResultPayload } from "@/lib/types";
 import { readValidatedImage } from "@/lib/validation/image";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+const MULTIPLE_ITEMS_MESSAGE =
+  "Several items are in this photo. Photograph a single item so it fills most of the frame.";
+
+function capConfidence(
+  confidence: Confidence,
+  uncertaintyReason: string,
+  hasCloseAlternative: boolean,
+): Confidence {
+  if (confidence === "high" && (uncertaintyReason.length > 0 || hasCloseAlternative)) {
+    return "medium";
+  }
+  return confidence;
+}
 
 export async function POST(request: Request) {
   const requestId = getRequestId();
@@ -73,11 +87,34 @@ export async function POST(request: Request) {
     const image = await readValidatedImage(file);
     const classification = await classifyWasteImage(image);
 
+    if (classification.multipleItems) {
+      const payload: ScanResultPayload = {
+        scanId: null,
+        result: {
+          isWasteItem: false,
+          outcome: "multiple-items",
+          itemName: classification.itemName,
+          message: MULTIPLE_ITEMS_MESSAGE,
+        },
+      };
+
+      logInfo("scan_multiple_items", {
+        requestId,
+        durationMs: Date.now() - startedAt,
+        itemName: classification.itemName,
+      });
+
+      return Response.json(payload, {
+        headers: { "cache-control": "no-store", "x-request-id": requestId },
+      });
+    }
+
     if (!classification.isWasteItem) {
       const payload: ScanResultPayload = {
         scanId: null,
         result: {
           isWasteItem: false,
+          outcome: "not-waste",
           itemName: classification.itemName,
           message:
             "Try a closer photo of one item, with the object filling most of the frame.",
@@ -118,6 +155,20 @@ export async function POST(request: Request) {
       });
     }
 
+    const uncertaintyReason = classification.uncertaintyReason.trim();
+    const confidence = capConfidence(
+      classification.confidence,
+      uncertaintyReason,
+      alternatives.length > 0,
+    );
+    const explanation =
+      uncertaintyReason ||
+      (confidence !== "high"
+        ? alternatives.length > 0
+          ? "A close alternative is also plausible."
+          : "The photo does not show the item clearly enough to be sure."
+        : "");
+
     const disposal = getDisposalGuidance(canonical.slug, classification.materialGroup);
 
     let scanId: string | null = null;
@@ -128,7 +179,7 @@ export async function POST(request: Request) {
         material: classification.material,
         materialGroup: classification.materialGroup,
         wasteStream: disposal.wasteStream,
-        confidence: classification.confidence,
+        confidence,
       });
     } catch (error) {
       logError("scan_persistence_failed", {
@@ -147,8 +198,8 @@ export async function POST(request: Request) {
         material: classification.material,
         materialGroup: classification.materialGroup,
         wasteStream: disposal.wasteStream,
-        confidence: classification.confidence,
-        uncertaintyReason: classification.uncertaintyReason,
+        confidence,
+        uncertaintyReason: explanation,
         alternatives,
         disposal,
       },
@@ -158,7 +209,7 @@ export async function POST(request: Request) {
       requestId,
       durationMs: Date.now() - startedAt,
       canonicalItem: canonical.slug,
-      confidence: classification.confidence,
+      confidence,
       persisted: Boolean(scanId),
       rateLimitDegraded: minuteLimit.degraded || dayLimit.degraded || globalLimit.degraded,
     });
