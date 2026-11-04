@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import { ActivityChart } from "@/components/insights/ActivityChart";
 import { ConfusionPanel } from "@/components/insights/ConfusionPanel";
 import { DataNotes } from "@/components/insights/DataNotes";
@@ -12,6 +13,7 @@ import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
 import { Icon } from "@/components/ui/Icon";
 import { formatJakartaTimestamp } from "@/lib/format";
 import { countLabel, fill } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
 import type { InsightsData } from "@/lib/types";
 
 type Range = 7 | 30;
@@ -25,12 +27,13 @@ type Props = {
 };
 
 export function InsightsView({ initialRange, datasets, error, minFeedback }: Props) {
-  const { locale, copy: text } = useI18n();
+  const { locale, copy: text, reserve } = useI18n();
+  const other: Locale = locale === "en" ? "id" : "en";
   const [range, setRange] = useState<Range>(initialRange);
   const data = datasets ? datasets[range] : null;
-  const ranges: { days: Range; label: string }[] = [
-    { days: 7, label: text.insights.last7 },
-    { days: 30, label: text.insights.last30 },
+  const ranges: { days: Range; label: string; held: string }[] = [
+    { days: 7, label: text.insights.last7, held: reserve.insights.last7 },
+    { days: 30, label: text.insights.last30, held: reserve.insights.last30 },
   ];
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>, next: Range) {
@@ -49,16 +52,38 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
         text.insights.responseMany,
       )
     : "";
+  const feedbackCountReserve = data
+    ? countLabel(
+        other,
+        data.overview.feedbackCount,
+        reserve.insights.responseOne,
+        reserve.insights.responseMany,
+      )
+    : "";
 
   return (
     <main className="insights-page">
       <div className="insights-head">
-        <p className="kicker">{text.insights.kicker}</p>
-        <h1>{text.insights.title}</h1>
-        <p>{text.insights.intro}</p>
+        <p className="kicker">
+          <StableText block text={text.insights.kicker} reserve={reserve.insights.kicker} />
+        </p>
+        <h1>
+          <StableText block text={text.insights.title} reserve={reserve.insights.title} />
+        </h1>
+        <p>
+          <StableText block text={text.insights.intro} reserve={reserve.insights.intro} />
+        </p>
         {data ? (
           <p className="muted-small">
-            {fill(text.insights.updated, { time: formatJakartaTimestamp(data.generatedAt, locale) })}
+            <StableText
+              block
+              text={fill(text.insights.updated, {
+                time: formatJakartaTimestamp(data.generatedAt, locale),
+              })}
+              reserve={fill(reserve.insights.updated, {
+                time: formatJakartaTimestamp(data.generatedAt, other),
+              })}
+            />
           </p>
         ) : null}
       </div>
@@ -68,10 +93,26 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
           <div className="empty-icon">
             <Icon name="alert" size={26} />
           </div>
-          <h2>{text.insights.unavailableTitle}</h2>
-          <p>{error === "unconfigured" ? text.insights.unconfigured : text.insights.unavailable}</p>
+          <h2>
+            <StableText
+              block
+              text={text.insights.unavailableTitle}
+              reserve={reserve.insights.unavailableTitle}
+            />
+          </h2>
+          <p>
+            <StableText
+              block
+              text={error === "unconfigured" ? text.insights.unconfigured : text.insights.unavailable}
+              reserve={
+                error === "unconfigured"
+                  ? reserve.insights.unconfigured
+                  : reserve.insights.unavailable
+              }
+            />
+          </p>
           <Link className="btn btn-secondary" href="/insights">
-            {text.insights.retry}
+            <StableText text={text.insights.retry} reserve={reserve.insights.retry} />
           </Link>
         </div>
       ) : data ? (
@@ -80,11 +121,14 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
             overview={data.overview}
             minFeedback={data.minFeedback}
             detail={text.insights.impactDetail}
+            detailReserve={reserve.insights.impactDetail}
           />
 
           <section className="insights-block" aria-labelledby="activity-title">
             <div className="section-heading">
-              <h2 id="activity-title">{text.insights.activity}</h2>
+              <h2 id="activity-title">
+                <StableText block text={text.insights.activity} reserve={reserve.insights.activity} />
+              </h2>
               <nav className="view-tabs" aria-label={text.insights.range}>
                 {ranges.map((option) => (
                   <Link
@@ -95,7 +139,7 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
                     scroll={false}
                     onClick={(event) => handleClick(event, option.days)}
                   >
-                    {option.label}
+                    <StableText text={option.label} reserve={option.held} />
                   </Link>
                 ))}
               </nav>
@@ -109,31 +153,68 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
 
           <div className="insights-columns">
             <section className="insights-block" aria-labelledby="breakdown-title">
-              <h2 id="breakdown-title">{text.insights.whatPeople}</h2>
+              <h2 id="breakdown-title">
+                <StableText
+                  block
+                  text={text.insights.whatPeople}
+                  reserve={reserve.insights.whatPeople}
+                />
+              </h2>
               <p className="muted-small">
-                {fill(text.insights.materialShare, { range: data.range })}
+                <StableText
+                  block
+                  text={fill(text.insights.materialShare, { range: data.range })}
+                  reserve={fill(reserve.insights.materialShare, { range: data.range })}
+                />
               </p>
               <MaterialBreakdown items={data.materialBreakdown} />
             </section>
 
             <section className="insights-block" aria-labelledby="top-title">
-              <h2 id="top-title">{text.insights.top}</h2>
-              <p className="muted-small">{fill(text.insights.topNote, { range: data.range })}</p>
+              <h2 id="top-title">
+                <StableText block text={text.insights.top} reserve={reserve.insights.top} />
+              </h2>
+              <p className="muted-small">
+                <StableText
+                  block
+                  text={fill(text.insights.topNote, { range: data.range })}
+                  reserve={fill(reserve.insights.topNote, { range: data.range })}
+                />
+              </p>
               {data.topItems.length === 0 ? (
-                <p className="muted-small">{text.insights.noneInRange}</p>
+                <p className="muted-small">
+                  <StableText
+                    block
+                    text={text.insights.noneInRange}
+                    reserve={reserve.insights.noneInRange}
+                  />
+                </p>
               ) : (
-                <LeaderboardList items={data.topItems} shareLabel={text.leaderboard.ofWindow} />
+                <LeaderboardList
+                  items={data.topItems}
+                  shareLabel={text.leaderboard.ofWindow}
+                  shareReserve={reserve.leaderboard.ofWindow}
+                />
               )}
             </section>
           </div>
 
           <section className="insights-block" aria-labelledby="confusion-title">
-            <h2 id="confusion-title">{text.insights.confusing}</h2>
+            <h2 id="confusion-title">
+              <StableText block text={text.insights.confusing} reserve={reserve.insights.confusing} />
+            </h2>
             <p className="muted-small">
-              {fill(text.insights.confusingNote, {
-                min: data.minFeedback,
-                count: feedbackCount,
-              })}
+              <StableText
+                block
+                text={fill(text.insights.confusingNote, {
+                  min: data.minFeedback,
+                  count: feedbackCount,
+                })}
+                reserve={fill(reserve.insights.confusingNote, {
+                  min: data.minFeedback,
+                  count: feedbackCountReserve,
+                })}
+              />
             </p>
             <ConfusionPanel items={data.confusingItems} minFeedback={data.minFeedback} />
           </section>
@@ -143,10 +224,22 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
               <div className="empty-icon">
                 <Icon name="trash" size={26} />
               </div>
-              <h2>{text.insights.emptyTitle}</h2>
-              <p>{text.insights.emptyBody}</p>
+              <h2>
+                <StableText
+                  block
+                  text={text.insights.emptyTitle}
+                  reserve={reserve.insights.emptyTitle}
+                />
+              </h2>
+              <p>
+                <StableText
+                  block
+                  text={text.insights.emptyBody}
+                  reserve={reserve.insights.emptyBody}
+                />
+              </p>
               <Link className="btn btn-primary" href="/">
-                {text.insights.scan}
+                <StableText text={text.insights.scan} reserve={reserve.insights.scan} />
                 <Icon name="arrow-right" size={17} />
               </Link>
             </div>
@@ -158,9 +251,15 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
 
       <div className="leaderboard-footer">
         <Link className="btn btn-secondary" href="/leaderboard">
-          {text.insights.back}
+          <StableText text={text.insights.back} reserve={reserve.insights.back} />
         </Link>
-        <p className="muted-small">{fill(text.insights.minimum, { min: minFeedback })}</p>
+        <p className="muted-small">
+          <StableText
+            block
+            text={fill(text.insights.minimum, { min: minFeedback })}
+            reserve={fill(reserve.insights.minimum, { min: minFeedback })}
+          />
+        </p>
       </div>
     </main>
   );

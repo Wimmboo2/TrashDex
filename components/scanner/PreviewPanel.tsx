@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import { Icon } from "@/components/ui/Icon";
 
 export function PreviewPanel({
@@ -22,17 +23,27 @@ export function PreviewPanel({
   onRemove: () => void;
   onCancel: () => void;
 }) {
-  const { copy: text } = useI18n();
+  const { copy: text, reserve } = useI18n();
   const status = isLoading
     ? text.scanner.reading
     : cancelled
       ? text.scanner.scanCancelled
       : text.scanner.readyToScan;
+  const statusReserve = isLoading
+    ? reserve.scanner.reading
+    : cancelled
+      ? reserve.scanner.scanCancelled
+      : reserve.scanner.readyToScan;
   const detail = isLoading
     ? text.scanner.identifying
     : cancelled
       ? text.scanner.nothingSaved
       : text.scanner.photoNote;
+  const detailReserve = isLoading
+    ? reserve.scanner.identifying
+    : cancelled
+      ? reserve.scanner.nothingSaved
+      : reserve.scanner.photoNote;
 
   return (
     <div>
@@ -45,27 +56,29 @@ export function PreviewPanel({
       <div className="preview-meta">
         <div>
           <p className="preview-status" role={cancelled ? "status" : undefined}>
-            {status}
+            <StableText block text={status} reserve={statusReserve} />
           </p>
-          <p className="muted-small">{detail}</p>
+          <p className="muted-small">
+            <StableText block text={detail} reserve={detailReserve} />
+          </p>
           {isLoading && slow ? (
             <p className="slow-note" role="status">
-              {text.scanner.stillWorking}
+              <StableText text={text.scanner.stillWorking} reserve={reserve.scanner.stillWorking} />
             </p>
           ) : null}
         </div>
         {isLoading ? (
           <button type="button" className="btn btn-secondary" onClick={onCancel}>
             <Icon name="x" size={17} />
-            {text.scanner.cancel}
+            <StableText text={text.scanner.cancel} reserve={reserve.scanner.cancel} />
           </button>
         ) : (
           <div className="preview-actions">
             <button type="button" className="btn btn-ghost" onClick={onRemove}>
-              {text.scanner.remove}
+              <StableText text={text.scanner.remove} reserve={reserve.scanner.remove} />
             </button>
             <button type="button" className="btn btn-secondary" onClick={onReplace}>
-              {text.scanner.replace}
+              <StableText text={text.scanner.replace} reserve={reserve.scanner.replace} />
             </button>
           </div>
         )}
@@ -74,7 +87,7 @@ export function PreviewPanel({
       {!isLoading ? (
         <button type="button" className="btn btn-primary btn-block" onClick={onAnalyze}>
           <Icon name="arrow-right" size={17} />
-          {text.scanner.analyze}
+          <StableText text={text.scanner.analyze} reserve={reserve.scanner.analyze} />
         </button>
       ) : null}
     </div>

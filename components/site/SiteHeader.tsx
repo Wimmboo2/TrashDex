@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import type { Locale } from "@/lib/i18n/locale";
 
 const LINKS = [
@@ -18,7 +19,7 @@ function isCurrent(pathname: string, href: string): boolean {
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { locale, setLocale, copy: text } = useI18n();
+  const { locale, setLocale, copy: text, reserve } = useI18n();
 
   return (
     <header className="site-header">
@@ -39,7 +40,8 @@ export function SiteHeader() {
         <span>TrashDex</span>
       </Link>
       <nav className="site-nav" aria-label={text.nav.main}>
-        <div className="lang-toggle" role="group" aria-label={text.nav.language}>
+        <div className="lang-toggle" role="group" aria-label={text.nav.language} data-locale={locale}>
+          <span className="lang-toggle-thumb" aria-hidden="true" />
           {(["id", "en"] as const).map((option) => (
             <button
               key={option}
@@ -62,7 +64,7 @@ export function SiteHeader() {
               className={current ? "is-active" : undefined}
               aria-current={current ? "page" : undefined}
             >
-              {text.nav[link.key]}
+              <StableText text={text.nav[link.key]} reserve={reserve.nav[link.key]} />
             </Link>
           );
         })}

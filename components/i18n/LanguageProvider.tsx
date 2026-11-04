@@ -8,6 +8,8 @@ type LanguageValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   copy: Copy;
+  /** The other language, used to reserve layout space. */
+  reserve: Copy;
 };
 
 const LanguageContext = createContext<LanguageValue | null>(null);
@@ -24,6 +26,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       locale,
       setLocale,
       copy: copy[locale],
+      reserve: locale === "en" ? copy.id : copy.en,
     }),
     [locale],
   );

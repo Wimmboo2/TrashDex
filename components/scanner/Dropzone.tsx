@@ -2,6 +2,7 @@
 
 import { useState, type DragEvent, type KeyboardEvent } from "react";
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import { Icon } from "@/components/ui/Icon";
 
 export function Dropzone({
@@ -9,13 +10,15 @@ export function Dropzone({
   onPickCamera,
   onPickUpload,
   error,
+  errorReserve = null,
 }: {
   onFile: (file: File) => void;
   onPickCamera: () => void;
   onPickUpload: () => void;
   error: string | null;
+  errorReserve?: string | null;
 }) {
-  const { copy: text } = useI18n();
+  const { copy: text, reserve } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
@@ -58,22 +61,26 @@ export function Dropzone({
         <div className="dropzone-icon">
           <Icon name="camera" size={28} />
         </div>
-        <h3>{text.scanner.dropTitle}</h3>
-        <p>{text.scanner.dropBody}</p>
+        <h3>
+          <StableText block text={text.scanner.dropTitle} reserve={reserve.scanner.dropTitle} />
+        </h3>
+        <p>
+          <StableText block text={text.scanner.dropBody} reserve={reserve.scanner.dropBody} />
+        </p>
         <div className="dropzone-actions" onClick={(event) => event.stopPropagation()}>
           <button type="button" className="btn btn-primary" onClick={onPickCamera}>
             <Icon name="camera" size={17} />
-            {text.scanner.takePhoto}
+            <StableText text={text.scanner.takePhoto} reserve={reserve.scanner.takePhoto} />
           </button>
           <button type="button" className="btn btn-secondary" onClick={onPickUpload}>
             <Icon name="upload" size={17} />
-            {text.scanner.chooseImage}
+            <StableText text={text.scanner.chooseImage} reserve={reserve.scanner.chooseImage} />
           </button>
         </div>
       </div>
       {error ? (
         <p className="field-error dropzone-error" role="alert">
-          {error}
+          <StableText block text={error} reserve={errorReserve ?? error} />
         </p>
       ) : null}
     </div>

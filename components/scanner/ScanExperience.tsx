@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import { Dropzone } from "@/components/scanner/Dropzone";
 import { PreviewPanel } from "@/components/scanner/PreviewPanel";
 import { ResultCard } from "@/components/scanner/ResultCard";
@@ -54,16 +55,18 @@ function ContextPicker({
   value: DisposalContext | null;
   onChange: (value: DisposalContext | null) => void;
 }) {
-  const { copy: text } = useI18n();
-  const options: { value: DisposalContext | null; label: string }[] = [
-    { value: null, label: text.scanner.general },
-    { value: "school", label: text.scanner.school },
-    { value: "neighborhood", label: text.scanner.neighborhood },
+  const { copy: text, reserve } = useI18n();
+  const options: { value: DisposalContext | null; label: string; reserve: string }[] = [
+    { value: null, label: text.scanner.general, reserve: reserve.scanner.general },
+    { value: "school", label: text.scanner.school, reserve: reserve.scanner.school },
+    { value: "neighborhood", label: text.scanner.neighborhood, reserve: reserve.scanner.neighborhood },
   ];
 
   return (
     <fieldset className="context-picker">
-      <legend>{text.scanner.contextLegend}</legend>
+      <legend>
+        <StableText text={text.scanner.contextLegend} reserve={reserve.scanner.contextLegend} />
+      </legend>
       <div className="context-options">
         {options.map((option) => {
           const id = `disposal-context-${option.value ?? "general"}`;
@@ -76,12 +79,14 @@ function ContextPicker({
                 checked={value === option.value}
                 onChange={() => onChange(option.value)}
               />
-              {option.label}
+              <StableText text={option.label} reserve={option.reserve} />
             </label>
           );
         })}
       </div>
-      <p className="muted-small">{text.scanner.contextHelp}</p>
+      <p className="muted-small">
+        <StableText block text={text.scanner.contextHelp} reserve={reserve.scanner.contextHelp} />
+      </p>
     </fieldset>
   );
 }
@@ -106,7 +111,7 @@ function ResultSkeleton() {
 }
 
 export function ScanExperience() {
-  const { copy: text } = useI18n();
+  const { copy: text, reserve } = useI18n();
   const [phase, setPhase] = useState<Phase>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -295,9 +300,23 @@ export function ScanExperience() {
           : phase === "error"
             ? text.scanner.tryAgain
             : text.scanner.ready;
+  const statusReserve =
+    phase === "loading"
+      ? reserve.scanner.analyzing
+      : phase === "cancelled"
+        ? reserve.scanner.cancelled
+        : phase === "success"
+          ? reserve.scanner.result
+          : phase === "error"
+            ? reserve.scanner.tryAgain
+            : reserve.scanner.ready;
 
   const visibleError = error
-    ? { code: error.code, message: messageForCode(error.code, text) }
+    ? {
+        code: error.code,
+        message: messageForCode(error.code, text),
+        reserve: messageForCode(error.code, reserve),
+      }
     : null;
   const fileErrorText =
     fileError === "heic"
@@ -309,14 +328,28 @@ export function ScanExperience() {
           : fileError === "unreadable"
             ? text.scanner.unreadable
             : null;
+  const fileErrorReserve =
+    fileError === "heic"
+      ? reserve.scanner.heic
+      : fileError === "type"
+        ? reserve.scanner.useImage
+        : fileError === "large"
+          ? reserve.scanner.tooLarge
+          : fileError === "unreadable"
+            ? reserve.scanner.unreadable
+            : null;
 
   return (
     <section className="scanner-card" aria-labelledby="scanner-title" aria-busy={phase === "loading"}>
       <div className="scanner-top">
         <div>
-          <h2 id="scanner-title">{text.scanner.title}</h2>
+          <h2 id="scanner-title">
+            <StableText block text={text.scanner.title} reserve={reserve.scanner.title} />
+          </h2>
         </div>
-        <span className={`status-pill status-${phase}`}>{statusLabel}</span>
+        <span className={`status-pill status-${phase}`}>
+          <StableText text={statusLabel} reserve={statusReserve} />
+        </span>
       </div>
 
       <input
@@ -345,6 +378,7 @@ export function ScanExperience() {
           onPickCamera={() => cameraInputRef.current?.click()}
           onPickUpload={() => uploadInputRef.current?.click()}
           error={fileErrorText}
+          errorReserve={fileErrorReserve}
         />
       ) : null}
 
@@ -379,18 +413,38 @@ export function ScanExperience() {
             <Icon name={notWaste.outcome === "multiple-items" ? "alert" : "image"} size={26} />
           </div>
           <h3>
-            {notWaste.outcome === "multiple-items"
-              ? text.scanner.multipleTitle
-              : text.scanner.notWasteTitle}
+            <StableText
+              block
+              text={
+                notWaste.outcome === "multiple-items"
+                  ? text.scanner.multipleTitle
+                  : text.scanner.notWasteTitle
+              }
+              reserve={
+                notWaste.outcome === "multiple-items"
+                  ? reserve.scanner.multipleTitle
+                  : reserve.scanner.notWasteTitle
+              }
+            />
           </h3>
           <p>
-            {notWaste.outcome === "multiple-items"
-              ? text.scanner.multipleBody
-              : text.scanner.notWasteBody}
+            <StableText
+              block
+              text={
+                notWaste.outcome === "multiple-items"
+                  ? text.scanner.multipleBody
+                  : text.scanner.notWasteBody
+              }
+              reserve={
+                notWaste.outcome === "multiple-items"
+                  ? reserve.scanner.multipleBody
+                  : reserve.scanner.notWasteBody
+              }
+            />
           </p>
           <button type="button" className="btn btn-primary" onClick={reset}>
             <Icon name="refresh" size={17} />
-            {text.scanner.tryAnother}
+            <StableText text={text.scanner.tryAnother} reserve={reserve.scanner.tryAnother} />
           </button>
         </div>
       ) : null}
@@ -401,15 +455,20 @@ export function ScanExperience() {
             <Icon name="alert" size={24} />
           </div>
           <div>
-            <h3>{text.scanner.failedTitle}</h3>
-            <p>{visibleError.message}</p>
+            <h3>
+              <StableText block text={text.scanner.failedTitle} reserve={reserve.scanner.failedTitle} />
+            </h3>
+            <p>
+              <StableText block text={visibleError.message} reserve={visibleError.reserve} />
+            </p>
             <p className="error-code">
-              {text.scanner.reference}: {visibleError.code}
+              <StableText text={text.scanner.reference} reserve={reserve.scanner.reference} />:{" "}
+              {visibleError.code}
             </p>
           </div>
           <button type="button" className="btn btn-primary" onClick={reset}>
             <Icon name="refresh" size={17} />
-            {text.scanner.tryAnother}
+            <StableText text={text.scanner.tryAnother} reserve={reserve.scanner.tryAnother} />
           </button>
         </div>
       ) : null}
