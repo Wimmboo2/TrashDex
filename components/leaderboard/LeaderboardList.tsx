@@ -2,7 +2,13 @@ import type { CSSProperties } from "react";
 import { MATERIAL_GROUP_LABELS } from "@/lib/taxonomy";
 import type { LeaderboardItem } from "@/lib/types";
 
-export function LeaderboardList({ items }: { items: LeaderboardItem[] }) {
+export function LeaderboardList({
+  items,
+  shareLabel = "of all scans",
+}: {
+  items: LeaderboardItem[];
+  shareLabel?: string;
+}) {
   return (
     <ol className="leaderboard-list" aria-label="Most-scanned item types">
       {items.map((item, index) => {
@@ -21,7 +27,10 @@ export function LeaderboardList({ items }: { items: LeaderboardItem[] }) {
               <h2>{item.displayName}</h2>
               <p>
                 {MATERIAL_GROUP_LABELS[item.materialGroup]}
-                <span className="leaderboard-share-text"> {share}% of scans</span>
+                <span className="leaderboard-share-text">
+                  {" "}
+                  {share}% {shareLabel}
+                </span>
               </p>
               <span className="share-line" aria-hidden="true">
                 <span style={{ width: `${share}%` }} />

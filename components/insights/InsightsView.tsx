@@ -5,10 +5,11 @@ import { useState, type MouseEvent } from "react";
 import { ActivityChart } from "@/components/insights/ActivityChart";
 import { ConfusionPanel } from "@/components/insights/ConfusionPanel";
 import { DataNotes } from "@/components/insights/DataNotes";
+import { ImpactSummary } from "@/components/insights/ImpactSummary";
 import { MaterialBreakdown } from "@/components/insights/MaterialBreakdown";
-import { StatGrid } from "@/components/insights/StatGrid";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
 import { Icon } from "@/components/ui/Icon";
+import { formatJakartaTimestamp } from "@/lib/format";
 import type { InsightsData } from "@/lib/types";
 
 type Range = 7 | 30;
@@ -43,25 +44,13 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
         <p className="kicker">Insights</p>
         <h1>What the scans say.</h1>
         <p>
-          Activity observed on TrashDex, counted from real scans. This is not a measurement of
-          real-world waste.
+          Counts come from scans stored on TrashDex. The summary is all time. The chart below is
+          only the selected window, so the two numbers can differ.
         </p>
+        {data ? (
+          <p className="muted-small">Updated {formatJakartaTimestamp(data.generatedAt)}.</p>
+        ) : null}
       </div>
-
-      <nav className="view-tabs" aria-label="Date range">
-        {RANGES.map((option) => (
-          <Link
-            key={option.days}
-            href={`/insights?range=${option.days}`}
-            className={`view-tab${range === option.days ? " is-active" : ""}`}
-            aria-current={range === option.days ? "page" : undefined}
-            scroll={false}
-            onClick={(event) => handleClick(event, option.days)}
-          >
-            {option.label}
-          </Link>
-        ))}
-      </nav>
 
       {error ? (
         <div className="empty-state" role="alert">
@@ -74,28 +63,37 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
             Try again
           </Link>
         </div>
-      ) : data && data.overview.totalScans === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">
-            <Icon name="trash" size={26} />
-          </div>
-          <h2>No scans recorded yet.</h2>
-          <p>
-            Every number on this page comes from real scans. Scan something and the dashboard fills
-            in on its own.
-          </p>
-          <Link className="btn btn-primary" href="/">
-            Scan an item
-            <Icon name="arrow-right" size={17} />
-          </Link>
-        </div>
       ) : data ? (
         <>
-          <StatGrid overview={data.overview} />
+          <ImpactSummary
+            overview={data.overview}
+            minFeedback={data.minFeedback}
+            detail="All time. These cards do not follow the 7-day or 30-day chart."
+          />
 
           <section className="insights-block" aria-labelledby="activity-title">
-            <h2 id="activity-title">Scan activity</h2>
-            <ActivityChart points={data.dailyScans} range={data.range} />
+            <div className="section-heading">
+              <h2 id="activity-title">Scan activity</h2>
+              <nav className="view-tabs" aria-label="Date range">
+                {RANGES.map((option) => (
+                  <Link
+                    key={option.days}
+                    href={`/insights?range=${option.days}`}
+                    className={`view-tab${range === option.days ? " is-active" : ""}`}
+                    aria-current={range === option.days ? "page" : undefined}
+                    scroll={false}
+                    onClick={(event) => handleClick(event, option.days)}
+                  >
+                    {option.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+            <ActivityChart
+              points={data.dailyScans}
+              range={data.range}
+              allTimeTotal={data.overview.totalScans}
+            />
           </section>
 
           <div className="insights-columns">
@@ -113,7 +111,7 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
               {data.topItems.length === 0 ? (
                 <p className="muted-small">No scans recorded in this range yet.</p>
               ) : (
-                <LeaderboardList items={data.topItems} />
+                <LeaderboardList items={data.topItems} shareLabel="of this window" />
               )}
             </section>
           </div>
@@ -121,13 +119,32 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
           <section className="insights-block" aria-labelledby="confusion-title">
             <h2 id="confusion-title">What people find confusing</h2>
             <p className="muted-small">
-              Items with the highest share of incorrect feedback. Needs at least {data.minFeedback}{" "}
-              responses, so this is reported confusion and not a confirmed error rate.
+              Highest share of incorrect feedback, from all stored responses. An item needs at
+              least {data.minFeedback} responses of its own. {data.overview.feedbackCount} response
+              {data.overview.feedbackCount === 1 ? "" : "s"} recorded in total. This is reported
+              confusion, not a confirmed error rate.
             </p>
             <ConfusionPanel items={data.confusingItems} minFeedback={data.minFeedback} />
           </section>
 
-          <DataNotes />
+          {data.overview.totalScans === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">
+                <Icon name="trash" size={26} />
+              </div>
+              <h2>No scans recorded yet.</h2>
+              <p>
+                The chart and cards stay visible so the page has a shape. They fill in from real
+                scans only.
+              </p>
+              <Link className="btn btn-primary" href="/">
+                Scan an item
+                <Icon name="arrow-right" size={17} />
+              </Link>
+            </div>
+          ) : null}
+
+          <DataNotes minFeedback={data.minFeedback} />
         </>
       ) : null}
 

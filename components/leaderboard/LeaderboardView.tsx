@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ImpactSummary } from "@/components/insights/ImpactSummary";
 import { ConfusingList } from "@/components/leaderboard/ConfusingList";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
 import {
@@ -9,13 +10,15 @@ import {
   type LeaderboardView as LeaderboardViewName,
 } from "@/components/leaderboard/LeaderboardTabs";
 import { Icon } from "@/components/ui/Icon";
-import type { ConfusingItem, LeaderboardItem } from "@/lib/types";
+import { formatJakartaTimestamp } from "@/lib/format";
+import type { ConfusingItem, LeaderboardItem, Overview } from "@/lib/types";
 
 type Props = {
   initialView: LeaderboardViewName;
   scanned: LeaderboardItem[];
   confusing: ConfusingItem[];
-  feedbackCount: number;
+  overview: Overview | null;
+  updatedAt: string | null;
   error: string | null;
   minFeedback: number;
 };
@@ -24,7 +27,8 @@ export function LeaderboardView({
   initialView,
   scanned,
   confusing,
-  feedbackCount,
+  overview,
+  updatedAt,
   error,
   minFeedback,
 }: Props) {
@@ -48,10 +52,21 @@ export function LeaderboardView({
         <h1>{isConfusing ? "Most confusing items." : "Most-scanned items."}</h1>
         <p>
           {isConfusing
-            ? "Items where people reported the result was wrong. This is reported confusion, not a confirmed model error."
-            : "Counts come from real TrashDex scans. No accounts, no seeded numbers, no fake rankings."}
+            ? "Items where people reported the result was wrong. A ranking appears only after enough feedback on that item. This is reported confusion, not a confirmed model error."
+            : "All-time counts from stored scans. No accounts, no seeded numbers, and corrections do not rewrite the ranking."}
         </p>
+        {updatedAt ? (
+          <p className="muted-small">Updated {formatJakartaTimestamp(updatedAt)}.</p>
+        ) : null}
       </div>
+
+      {!error && overview ? (
+        <ImpactSummary
+          overview={overview}
+          minFeedback={minFeedback}
+          detail="All time, same scans as the ranking below."
+        />
+      ) : null}
 
       <LeaderboardTabs view={view} onSelect={selectView} />
 
@@ -74,8 +89,11 @@ export function LeaderboardView({
             </div>
             <h2>Not enough feedback yet.</h2>
             <p>
-              An item needs at least {minFeedback} feedback responses before it can be ranked.{" "}
-              {feedbackCount} feedback response{feedbackCount === 1 ? "" : "s"} recorded so far.
+              An item needs at least {minFeedback} feedback responses of its own before it can be
+              ranked. {overview?.feedbackCount ?? 0} response
+              {(overview?.feedbackCount ?? 0) === 1 ? "" : "s"} recorded in total. Responses spread
+              across items do not add up to a ranking, and no percentage is shown until the
+              threshold is met.
             </p>
             <Link className="btn btn-primary" href="/">
               Scan an item
