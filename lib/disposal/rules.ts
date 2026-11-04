@@ -11,6 +11,13 @@ const CONTEXT_NOTES: Record<DisposalContext, string> = {
     "Neighborhood note: ask a nearby waste bank or a 3R facility what they accept. This app does not know your area.",
 };
 
+const HAZARDOUS_CONTEXT_NOTES: Record<DisposalContext, string> = {
+  school:
+    "School note: do not put this in a school bin or a waste bank. Use a hazardous drop-off, or ask the school if it has a separate collection.",
+  neighborhood:
+    "Neighborhood note: do not take this to a waste bank or a 3R facility. Ask a hazardous drop-off or the local environment office. This app does not know your area.",
+};
+
 type PlaceId = LocalOption["id"];
 
 type PlaceDraft = {
@@ -1061,7 +1068,11 @@ export function getDisposalGuidance(
     scrap: override?.scrap ?? aligned.scrap ?? DEFAULT_SCRAP,
     scope: "general",
     context: selected,
-    contextNote: selected ? CONTEXT_NOTES[selected] : null,
+    contextNote: selected
+      ? wasteStream === "hazardous"
+        ? HAZARDOUS_CONTEXT_NOTES[selected]
+        : CONTEXT_NOTES[selected]
+      : null,
     sourceNote: SOURCE_NOTE,
   };
 }
