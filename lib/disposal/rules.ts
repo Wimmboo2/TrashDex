@@ -339,8 +339,8 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Remove the cap and label",
     steps: [
       "Empty and rinse the bottle.",
-      "Peel off the label. Remove the cap and bag caps separately if a waste bank wants them. Caps are usually a different plastic.",
-      "Crush the bottle so it takes less space.",
+      "Peel off the label. Remove the cap and bag the caps separately if a waste bank wants them. Caps are usually a different plastic.",
+      "Crush the bottle so it takes up less space.",
       "Take clean bottles to a waste bank or a scrap collector who buys PET. A school PET bin is fine when the school collects bottles.",
     ],
     warnings: ["Oily or food-stained bottles are often rejected."],
@@ -389,7 +389,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Rinse the container and separate the lid",
     steps: [
       "Empty, rinse, and dry it.",
-      "Remove the lid if it is a different plastic and bag lids separately.",
+      "Remove the lid if it is a different plastic and bag the lids separately.",
       "HDPE (#2) and PP (#5) are accepted more often than other codes.",
     ],
     warnings: ["Black plastic and food-stained tubs are often refused."],
