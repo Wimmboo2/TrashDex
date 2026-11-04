@@ -5,6 +5,8 @@ import { config } from "@/lib/config";
 import { AppError } from "@/lib/errors";
 import { logError } from "@/lib/logger";
 
+const CLASSIFICATION_TIMEOUT_MS = 30_000;
+
 let client: GoogleGenAI | null = null;
 
 function getClient(): GoogleGenAI {
@@ -20,7 +22,7 @@ function getClient(): GoogleGenAI {
   if (!client) {
     client = new GoogleGenAI({
       apiKey,
-      httpOptions: { timeout: 30000 },
+      httpOptions: { timeout: CLASSIFICATION_TIMEOUT_MS },
     });
   }
 
@@ -140,12 +142,41 @@ function isTimeout(error: unknown): boolean {
   );
 }
 
-export async function classifyWasteImage(input: {
-  buffer: Buffer;
-  mimeType: string;
-}): Promise<AiClassification> {
+function cancelledClassification(): DOMException {
+  return new DOMException("The scan was cancelled.", "AbortError");
+}
+
+function classificationSignal(signal: AbortSignal): AbortSignal {
+  return AbortSignal.any([signal, AbortSignal.timeout(CLASSIFICATION_TIMEOUT_MS)]);
+}
+
+function waitForClassification(signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.reject(cancelledClassification());
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, 900);
+    function onAbort() {
+      clearTimeout(timer);
+      reject(cancelledClassification());
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+export async function classifyWasteImage(
+  input: {
+    buffer: Buffer;
+    mimeType: string;
+  },
+  signal?: AbortSignal,
+): Promise<AiClassification> {
+  if (signal?.aborted) throw cancelledClassification();
+
   if (config.mockAiMode) {
-    await new Promise((resolve) => setTimeout(resolve, 900));
+    await waitForClassification(signal);
 
     if (config.mockAiMode === "error") {
       throw new AppError(
@@ -159,29 +190,32 @@ export async function classifyWasteImage(input: {
   }
 
   try {
-    const interaction = await getClient().interactions.create({
-      model: config.geminiModel,
-      store: false,
-      system_instruction: SYSTEM_PROMPT,
-      input: [
-        { type: "text", text: "Identify the main object in this image." },
-        {
-          type: "image",
-          data: input.buffer.toString("base64"),
-          mime_type: input.mimeType,
+    const interaction = await getClient().interactions.create(
+      {
+        model: config.geminiModel,
+        store: false,
+        system_instruction: SYSTEM_PROMPT,
+        input: [
+          { type: "text", text: "Identify the main object in this image." },
+          {
+            type: "image",
+            data: input.buffer.toString("base64"),
+            mime_type: input.mimeType,
+          },
+        ],
+        response_format: {
+          type: "text",
+          mime_type: "application/json",
+          schema: AI_JSON_SCHEMA,
         },
-      ],
-      response_format: {
-        type: "text",
-        mime_type: "application/json",
-        schema: AI_JSON_SCHEMA,
+        generation_config: {
+          thinking_level: "minimal",
+          temperature: 0.1,
+          max_output_tokens: 1024,
+        },
       },
-      generation_config: {
-        thinking_level: "minimal",
-        temperature: 0.1,
-        max_output_tokens: 1024,
-      },
-    });
+      signal ? { signal: classificationSignal(signal) } : undefined,
+    );
 
     const text = interaction.output_text;
     if (!text) {
@@ -192,8 +226,11 @@ export async function classifyWasteImage(input: {
       );
     }
 
+    if (signal?.aborted) throw cancelledClassification();
+
     return parseAiClassification(text);
   } catch (error) {
+    if (signal?.aborted) throw cancelledClassification();
     if (error instanceof AppError) throw error;
 
     const status = statusOf(error);

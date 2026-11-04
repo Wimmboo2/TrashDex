@@ -31,3 +31,13 @@ Mistakes and wrong assumptions from the session that built the ID/EN toggle, Ind
 12. A 220ms thumb transition was treated as a snap because a video review and a 2fps frame sample never caught the thumb in the middle. A 30fps crop of the same control showed it mid-slide. The duration is now `320ms` with `cubic-bezier(0.22, 1, 0.36, 1)` on `.lang-toggle-thumb`. Do not trust a sparse frame sample or a video-review claim that contradicts `getBoundingClientRect` and a high-fps crop. `prefers-reduced-motion` still forces `transition-duration: 0.01ms` in `app/globals.css`.
 
 13. After the language work merged, the follow-up was pushed to `cursor/language-toggle-nav-2c3c` and `update_pr` was called for that branch. Pull request #5 was already `MERGED` (`f14c410`). The tool returned `No open PR found for branch: cursor/language-toggle-nav-2c3c`. Check `gh pr view` state before updating. The polish went out as pull request #6, later merged as `44dc0d8`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

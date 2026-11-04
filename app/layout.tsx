@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Caprasimo, Figtree } from "next/font/google";
+import { cookies } from "next/headers";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n/locale";
 import "./globals.css";
 
 const caprasimo = Caprasimo({
@@ -54,11 +56,14 @@ export const viewport: Viewport = {
   themeColor: "#f5ead8",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const locale = parseLocale(cookieStore.get(LOCALE_COOKIE)?.value);
+
   return (
-    <html lang="en" className={`${caprasimo.variable} ${figtree.variable}`}>
+    <html lang={locale} className={`${caprasimo.variable} ${figtree.variable}`}>
       <body>
-        <LanguageProvider>
+        <LanguageProvider initialLocale={locale}>
           <div className="site-shell">
             <SiteHeader />
             {children}
