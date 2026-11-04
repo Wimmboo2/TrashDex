@@ -324,6 +324,8 @@ const DISPOSAL_ID: Record<string, string> = {
   "Guidance is for Indonesia and is not a city or school regulation. Check local rules before you dispose of it.": "Panduan ini untuk Indonesia dan bukan peraturan kota atau sekolah. Periksa aturan setempat sebelum membuangnya.",
   "School note: use your school bins when they exist. Waste banks, 3R facilities, and hazardous drop-offs are for items the school does not take.": "Catatan sekolah: pakai tempat sampah sekolah jika ada. Bank sampah, TPS 3R, dan tempat pengumpulan limbah B3 untuk barang yang tidak diterima sekolah.",
   "Neighborhood note: ask a nearby waste bank or a 3R facility what they accept. This app does not know your area.": "Catatan lingkungan: tanyakan ke bank sampah atau TPS 3R terdekat apa yang mereka terima. Aplikasi ini tidak mengetahui daerahmu.",
+  "School note: do not put this in a school bin or a waste bank. Use a hazardous drop-off, or ask the school if it has a separate collection.": "Catatan sekolah: jangan masukkan ini ke tempat sampah sekolah atau bank sampah. Gunakan tempat pengumpulan limbah B3, atau tanyakan ke sekolah jika ada pengumpulan terpisah.",
+  "Neighborhood note: do not take this to a waste bank or a 3R facility. Ask a hazardous drop-off or the local environment office. This app does not know your area.": "Catatan lingkungan: jangan bawa ini ke bank sampah atau TPS 3R. Tanyakan ke tempat pengumpulan limbah B3 atau dinas lingkungan hidup. Aplikasi ini tidak mengetahui daerahmu.",
   "Waste bank": "Bank sampah",
   "3R facility": "TPS 3R",
   "Hazardous drop-off": "Tempat pengumpulan limbah B3"
