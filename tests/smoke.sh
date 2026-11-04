@@ -58,14 +58,22 @@ pass "insights page renders"
 
 code=$(status -X POST "$BASE/api/scan")
 [ "$code" = "400" ] || fail "empty scan returned $code"
+grep -Eq '"code":"(INVALID_REQUEST|MALFORMED_REQUEST)"' "$TMP/body.json" || fail "empty scan code"
 pass "empty scan rejected"
+
+code=$(status -X POST -H "Content-Type: application/json" -d '{}' "$BASE/api/scan")
+[ "$code" = "400" ] || fail "json scan returned $code"
+grep -q '"code":"MALFORMED_REQUEST"' "$TMP/body.json" || fail "json scan code"
+pass "non-upload rejected"
 
 code=$(status -X POST -F "image=@$TMP/not-an-image.txt;type=text/plain" "$BASE/api/scan")
 [ "$code" = "415" ] || fail "text file returned $code"
+grep -q '"code":"UNSUPPORTED_TYPE"' "$TMP/body.json" || fail "text file code"
 pass "invalid file type rejected"
 
 code=$(status -X POST -F "image=@$TMP/too-large.jpg;type=image/jpeg" "$BASE/api/scan")
 [ "$code" = "413" ] || fail "oversized file returned $code"
+grep -q "Try a smaller photo" "$TMP/body.json" || fail "oversized message"
 pass "oversized file rejected"
 
 code=$(status -X POST -F "image=@$TMP/corrupt.png;type=image/png" "$BASE/api/scan")
