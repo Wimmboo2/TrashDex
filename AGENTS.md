@@ -30,15 +30,18 @@ The user has explicitly allowed installs, builds, tests, browser automation, and
 - The database is Neon Postgres. Schema and seed live in `db/schema.sql`.
 - The app uses `pg` with raw SQL, not an ORM.
 - No accounts, no image storage, no tracking scripts.
-- Disposal guidance is general Indonesia-oriented guidance, not verified local rules.
+- Disposal guidance is deterministic and Indonesia-oriented: bank sampah, TPS 3R, B3 drop-offs, and scrap collectors. It is not a verified city or school rule.
+- Live site: https://trashdex.vercel.app
 - Mock AI modes are test-only: `MOCK_AI=true`, `not-waste`, `low`, `uncertain`, `multiple`, `error`. Never enable in production.
 - Scope: scanner, feedback, leaderboard, and insights. Do not add gamification, accounts, browser-local progress, or third-party services.
 
 ## Metrics
 
 - Queries live in `lib/analytics.ts`. Aggregation stays in SQL.
-- Reported correctness uses feedback as the denominator, never scans.
+- The impact summary is all time. The activity chart, material mix, and in-range top items are the selected 7- or 30-day window in `Asia/Jakarta`. Those totals are allowed to differ.
+- Reported correctness uses feedback as the denominator, never scans, and stays hidden until `MIN_FEEDBACK_RESPONSES` (5) responses.
 - A confusing-item ranking needs at least `MIN_FEEDBACK_RESPONSES` (5) feedback responses per item.
+- The rough diversion estimate counts scans in recycling, organic, textile, e-waste, or special drop-off. It is not weighed waste.
 - Daily buckets use `Asia/Jakarta`.
 - Never seed or fabricate production data to make a view look populated.
 
@@ -49,7 +52,7 @@ The user has explicitly allowed installs, builds, tests, browser automation, and
 - Database: `neondb`
 - Region: Singapore, PostgreSQL 17
 - Use the Neon MCP or the Neon console for the connection string. Do not print it.
-- The project currently has 37 canonical items and 0 scans.
+- Canonical items are seeded. Scan and feedback counts change. Query them. Do not assume the database is empty.
 
 ## Commands
 
@@ -76,10 +79,9 @@ These require Playwright and a running app. They write screenshots to `artifacts
 ## Current status
 
 - Stage 1, Stage 2, and Stage 3 are implemented.
-- Build, lint, smoke tests, database checks, and browser screenshots for Stage 1 and 2 passed in DeepInfra Sandbox.
-- Real Gemini classification has not been verified because no `GEMINI_API_KEY` was available.
-- Nothing is deployed.
-- Verification sandboxes have been terminated.
+- The app is deployed at https://trashdex.vercel.app.
+- Do not assume a live Gemini classification has been verified in the current environment.
+- Scan and feedback rows exist. Read counts from the database instead of hard-coding them.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

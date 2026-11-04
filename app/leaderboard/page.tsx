@@ -3,7 +3,7 @@ import type { LeaderboardView as LeaderboardViewName } from "@/components/leader
 import { getConfusingItems, getOverview, MIN_FEEDBACK_RESPONSES } from "@/lib/analytics";
 import { isDatabaseConfigured } from "@/lib/db";
 import { getLeaderboard } from "@/lib/scan-store";
-import type { ConfusingItem, LeaderboardItem } from "@/lib/types";
+import type { ConfusingItem, LeaderboardItem, Overview } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,8 @@ export default async function LeaderboardPage({
 
   let scannedItems: LeaderboardItem[] = [];
   let confusingItems: ConfusingItem[] = [];
-  let feedbackCount = 0;
+  let overview: Overview | null = null;
+  let updatedAt: string | null = null;
   let error: string | null = null;
 
   if (!isDatabaseConfigured()) {
@@ -32,14 +33,15 @@ export default async function LeaderboardPage({
     // Both views load together, so switching tabs is instant instead of waiting
     // for another server round trip.
     try {
-      const [scanned, confusing, feedback] = await Promise.all([
+      const [scanned, confusing, summary] = await Promise.all([
         getLeaderboard(20),
         getConfusingItems({ limit: 20 }),
-        getOverview().then((overview) => overview.feedbackCount),
+        getOverview(),
       ]);
       scannedItems = scanned;
       confusingItems = confusing;
-      feedbackCount = feedback;
+      overview = summary;
+      updatedAt = new Date().toISOString();
     } catch {
       error = "The leaderboard is temporarily unavailable. Try again in a moment.";
     }
@@ -50,7 +52,8 @@ export default async function LeaderboardPage({
       initialView={view}
       scanned={scannedItems}
       confusing={confusingItems}
-      feedbackCount={feedbackCount}
+      overview={overview}
+      updatedAt={updatedAt}
       error={error}
       minFeedback={MIN_FEEDBACK_RESPONSES}
     />

@@ -104,8 +104,16 @@ export type Overview = {
   feedbackCount: number;
   correctFeedbackCount: number;
   incorrectFeedbackCount: number;
-  /** Correct feedback over all feedback, 0 to 1. Null when there is no feedback. */
+  /**
+   * Correct feedback over all feedback, 0 to 1.
+   * Null until feedback reaches the minimum response threshold.
+   */
   reportedCorrectnessRate: number | null;
+  /**
+   * Scans whose stream is recycling, organic, textile, e-waste, or special drop-off.
+   * Residual, hazardous, and unknown scans are excluded.
+   */
+  divertableScans: number;
 };
 
 export type InsightsData = {

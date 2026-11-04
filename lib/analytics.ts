@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { DIVERTABLE_STREAMS } from "@/lib/metrics";
 import type {
   ConfusingItem,
   DailyScanPoint,
@@ -37,13 +38,15 @@ export async function getOverview(): Promise<Overview> {
     feedbackCount: number;
     correctFeedbackCount: number;
     incorrectFeedbackCount: number;
+    divertableScans: number;
   }>(
     `select
        (select count(*)::int from scans) as "totalScans",
        (select count(distinct canonical_item)::int from scans) as "uniqueItems",
        (select count(*)::int from scan_feedback) as "feedbackCount",
        (select count(*)::int from scan_feedback where verdict = 'correct') as "correctFeedbackCount",
-       (select count(*)::int from scan_feedback where verdict = 'incorrect') as "incorrectFeedbackCount"`,
+       (select count(*)::int from scan_feedback where verdict = 'incorrect') as "incorrectFeedbackCount",
+       (select count(*)::int from scans where waste_stream in (${DIVERTABLE_STREAMS.map((stream) => `'${stream}'`).join(", ")})) as "divertableScans"`,
   );
 
   const row = rows[0];
@@ -57,7 +60,8 @@ export async function getOverview(): Promise<Overview> {
     correctFeedbackCount,
     incorrectFeedbackCount: row?.incorrectFeedbackCount ?? 0,
     reportedCorrectnessRate:
-      feedbackCount > 0 ? correctFeedbackCount / feedbackCount : null,
+      feedbackCount >= MIN_FEEDBACK_RESPONSES ? correctFeedbackCount / feedbackCount : null,
+    divertableScans: row?.divertableScans ?? 0,
   };
 }
 
