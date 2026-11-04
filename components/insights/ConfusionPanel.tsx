@@ -1,5 +1,9 @@
+"use client";
+
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { Icon } from "@/components/ui/Icon";
-import { MATERIAL_GROUP_LABELS } from "@/lib/taxonomy";
+import { fill } from "@/lib/i18n/messages";
+import { itemLabel, materialLabel } from "@/lib/i18n/labels";
 import type { ConfusingItem } from "@/lib/types";
 
 export function ConfusionPanel({
@@ -9,13 +13,13 @@ export function ConfusionPanel({
   items: ConfusingItem[];
   minFeedback: number;
 }) {
+  const { locale, copy: text } = useI18n();
+
   if (items.length === 0) {
     return (
       <div className="panel-note">
         <Icon name="alert" size={18} />
-        <p>
-          No item has reached {minFeedback} feedback responses yet, so nothing is ranked here.
-        </p>
+        <p>{fill(text.insights.noItemYet, { min: minFeedback })}</p>
       </div>
     );
   }
@@ -25,10 +29,13 @@ export function ConfusionPanel({
       {items.map((item) => (
         <li key={item.canonicalItem}>
           <div>
-            <p className="confusion-name">{item.displayName}</p>
+            <p className="confusion-name">{itemLabel(locale, item.canonicalItem, item.displayName)}</p>
             <p className="muted-small">
-              {MATERIAL_GROUP_LABELS[item.materialGroup]} - {item.negativeCount} of{" "}
-              {item.feedbackCount} responses marked incorrect
+              {materialLabel(locale, item.materialGroup)} -{" "}
+              {fill(text.leaderboard.confusionShort, {
+                negative: item.negativeCount,
+                total: item.feedbackCount,
+              })}
             </p>
           </div>
           <span className="confusion-rate">{Math.round(item.negativeRate * 100)}%</span>

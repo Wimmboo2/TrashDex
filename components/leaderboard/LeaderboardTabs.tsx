@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { MouseEvent } from "react";
+import { useI18n } from "@/components/i18n/LanguageProvider";
 
 export type LeaderboardView = "scanned" | "confusing";
 
@@ -12,9 +13,10 @@ export function LeaderboardTabs({
   view: LeaderboardView;
   onSelect: (view: LeaderboardView) => void;
 }) {
+  const { copy: text } = useI18n();
   const tabs: { id: LeaderboardView; label: string; href: string }[] = [
-    { id: "scanned", label: "Most scanned", href: "/leaderboard?view=scanned" },
-    { id: "confusing", label: "Most confusing", href: "/leaderboard?view=confusing" },
+    { id: "scanned", label: text.leaderboard.mostScanned, href: "/leaderboard?view=scanned" },
+    { id: "confusing", label: text.leaderboard.mostConfusing, href: "/leaderboard?view=confusing" },
   ];
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>, next: LeaderboardView) {
@@ -24,7 +26,7 @@ export function LeaderboardTabs({
   }
 
   return (
-    <nav className="view-tabs" aria-label="Leaderboard view">
+    <nav className="view-tabs" aria-label={text.leaderboard.view}>
       {tabs.map((tab) => (
         <Link
           key={tab.id}

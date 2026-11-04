@@ -1,14 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { Icon } from "@/components/ui/Icon";
-import {
-  CANONICAL_ITEMS,
-  MATERIAL_GROUPS,
-  MATERIAL_GROUP_LABELS,
-  WASTE_STREAMS,
-  WASTE_STREAM_LABELS,
-} from "@/lib/taxonomy";
+import { itemLabel, materialLabel, streamLabel } from "@/lib/i18n/labels";
+import { CANONICAL_ITEMS, MATERIAL_GROUPS, WASTE_STREAMS } from "@/lib/taxonomy";
 
 type Mode = "idle" | "correction" | "done";
 
@@ -19,10 +15,11 @@ export function FeedbackForm({
   scanId: string | null;
   onSubmitted?: () => void;
 }) {
+  const { locale, copy: text } = useI18n();
   const [mode, setMode] = useState<Mode>("idle");
   const [isSending, setIsSending] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState<"thanks" | "duplicate" | "">("");
+  const [error, setError] = useState<"failed" | "offline" | "">("");
   const [itemName, setItemName] = useState("");
   const [canonicalItem, setCanonicalItem] = useState("");
   const [materialGroup, setMaterialGroup] = useState("");
@@ -35,7 +32,7 @@ export function FeedbackForm({
           <span className="feedback-recorded-icon">
             <Icon name="check" size={18} />
           </span>
-          <p>{message || "Thanks. Your feedback was recorded."}</p>
+          <p>{message === "duplicate" ? text.feedback.duplicate : text.feedback.thanks}</p>
         </div>
       </div>
     );
@@ -45,7 +42,7 @@ export function FeedbackForm({
     return (
       <div className="feedback">
         <p className="muted-small">
-          Feedback is unavailable for this scan. The result was not saved.
+          {text.feedback.unavailable}
         </p>
       </div>
     );
@@ -76,26 +73,22 @@ export function FeedbackForm({
           ...(correction ? { correction } : {}),
         }),
       });
-      const data = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null;
-
       if (!response.ok) {
         if (response.status === 409) {
           setMode("done");
-          setMessage("Feedback was already recorded for this scan.");
+          setMessage("duplicate");
           onSubmitted?.();
           return;
         }
-        setError(data?.error?.message || "Could not send feedback. Try again.");
+        setError("failed");
         return;
       }
 
       setMode("done");
-      setMessage("Thanks. Your feedback was recorded.");
+      setMessage("thanks");
       onSubmitted?.();
     } catch {
-      setError("Could not send feedback. Check your connection and try again.");
+      setError("offline");
     } finally {
       setIsSending(false);
     }
@@ -104,8 +97,8 @@ export function FeedbackForm({
   return (
     <div className="feedback">
       <div className="feedback-head">
-        <h4>Was this result right?</h4>
-        <p className="muted-small">Your answer is stored as unverified feedback.</p>
+        <h4>{text.feedback.question}</h4>
+        <p className="muted-small">{text.feedback.stored}</p>
       </div>
 
       {mode === "idle" ? (
@@ -117,7 +110,7 @@ export function FeedbackForm({
             disabled={isSending}
           >
             <Icon name="check" size={17} />
-            {isSending ? "Sending..." : "Yes, it is right"}
+            {isSending ? text.feedback.sending : text.feedback.yes}
           </button>
           <button
             type="button"
@@ -129,7 +122,7 @@ export function FeedbackForm({
             disabled={isSending}
           >
             <Icon name="x" size={17} />
-            No, something is off
+            {text.feedback.no}
           </button>
         </div>
       ) : null}
@@ -137,20 +130,20 @@ export function FeedbackForm({
       {mode === "correction" ? (
         <div className="feedback-form">
           <div className="field">
-            <label htmlFor="correction-item">Correct item name (optional)</label>
+            <label htmlFor="correction-item">{text.feedback.itemLabel}</label>
             <input
               id="correction-item"
               className="input"
               value={itemName}
               onChange={(event) => setItemName(event.target.value)}
               maxLength={80}
-              placeholder="For example, glass jar"
+              placeholder={text.feedback.itemPlaceholder}
               disabled={isSending}
             />
           </div>
 
           <div className="field">
-            <label htmlFor="correction-canonical">Closest item type</label>
+            <label htmlFor="correction-canonical">{text.feedback.typeLabel}</label>
             <select
               id="correction-canonical"
               className="input"
@@ -158,17 +151,17 @@ export function FeedbackForm({
               onChange={(event) => setCanonicalItem(event.target.value)}
               disabled={isSending}
             >
-              <option value="">Keep the current item type</option>
+              <option value="">{text.feedback.keepType}</option>
               {CANONICAL_ITEMS.map((item) => (
                 <option key={item.slug} value={item.slug}>
-                  {item.label}
+                  {itemLabel(locale, item.slug, item.label)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="field">
-            <label htmlFor="correction-material">Material</label>
+            <label htmlFor="correction-material">{text.feedback.materialLabel}</label>
             <select
               id="correction-material"
               className="input"
@@ -176,17 +169,17 @@ export function FeedbackForm({
               onChange={(event) => setMaterialGroup(event.target.value)}
               disabled={isSending}
             >
-              <option value="">Keep the current material</option>
+              <option value="">{text.feedback.keepMaterial}</option>
               {MATERIAL_GROUPS.map((group) => (
                 <option key={group} value={group}>
-                  {MATERIAL_GROUP_LABELS[group]}
+                  {materialLabel(locale, group)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="field">
-            <label htmlFor="correction-stream">Waste stream</label>
+            <label htmlFor="correction-stream">{text.feedback.streamLabel}</label>
             <select
               id="correction-stream"
               className="input"
@@ -194,10 +187,10 @@ export function FeedbackForm({
               onChange={(event) => setWasteStream(event.target.value)}
               disabled={isSending}
             >
-              <option value="">Keep the current stream</option>
+              <option value="">{text.feedback.keepStream}</option>
               {WASTE_STREAMS.map((stream) => (
                 <option key={stream} value={stream}>
-                  {WASTE_STREAM_LABELS[stream]}
+                  {streamLabel(locale, stream)}
                 </option>
               ))}
             </select>
@@ -205,7 +198,7 @@ export function FeedbackForm({
 
           {error ? (
             <p className="field-error" role="alert">
-              {error}
+              {error === "offline" ? text.feedback.offline : text.feedback.sendFailed}
             </p>
           ) : null}
 
@@ -216,7 +209,7 @@ export function FeedbackForm({
               onClick={() => void send("incorrect", true)}
               disabled={isSending}
             >
-              {isSending ? "Sending..." : "Send correction"}
+              {isSending ? text.feedback.sending : text.feedback.send}
             </button>
             <button
               type="button"
@@ -227,7 +220,7 @@ export function FeedbackForm({
               }}
               disabled={isSending}
             >
-              Cancel
+              {text.feedback.cancel}
             </button>
           </div>
         </div>
@@ -235,7 +228,7 @@ export function FeedbackForm({
 
       {mode === "idle" && error ? (
         <p className="field-error" role="alert">
-          {error}
+          {error === "offline" ? text.feedback.offline : text.feedback.sendFailed}
         </p>
       ) : null}
     </div>

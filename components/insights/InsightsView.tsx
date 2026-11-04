@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { ActivityChart } from "@/components/insights/ActivityChart";
 import { ConfusionPanel } from "@/components/insights/ConfusionPanel";
 import { DataNotes } from "@/components/insights/DataNotes";
@@ -10,25 +11,27 @@ import { MaterialBreakdown } from "@/components/insights/MaterialBreakdown";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
 import { Icon } from "@/components/ui/Icon";
 import { formatJakartaTimestamp } from "@/lib/format";
+import { countLabel, fill } from "@/lib/i18n/messages";
 import type { InsightsData } from "@/lib/types";
 
 type Range = 7 | 30;
+type PageError = "unconfigured" | "unavailable";
 
 type Props = {
   initialRange: Range;
   datasets: Record<Range, InsightsData> | null;
-  error: string | null;
+  error: PageError | null;
   minFeedback: number;
 };
 
-const RANGES: { days: Range; label: string }[] = [
-  { days: 7, label: "Last 7 days" },
-  { days: 30, label: "Last 30 days" },
-];
-
 export function InsightsView({ initialRange, datasets, error, minFeedback }: Props) {
+  const { locale, copy: text } = useI18n();
   const [range, setRange] = useState<Range>(initialRange);
   const data = datasets ? datasets[range] : null;
+  const ranges: { days: Range; label: string }[] = [
+    { days: 7, label: text.insights.last7 },
+    { days: 30, label: text.insights.last30 },
+  ];
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>, next: Range) {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -38,17 +41,25 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
     window.history.replaceState(null, "", `/insights?range=${next}`);
   }
 
+  const feedbackCount = data
+    ? countLabel(
+        locale,
+        data.overview.feedbackCount,
+        text.insights.responseOne,
+        text.insights.responseMany,
+      )
+    : "";
+
   return (
     <main className="insights-page">
       <div className="insights-head">
-        <p className="kicker">Insights</p>
-        <h1>What the scans say.</h1>
-        <p>
-          Counts come from scans stored on TrashDex. The summary is all time. The chart below is
-          only the selected window, so the two numbers can differ.
-        </p>
+        <p className="kicker">{text.insights.kicker}</p>
+        <h1>{text.insights.title}</h1>
+        <p>{text.insights.intro}</p>
         {data ? (
-          <p className="muted-small">Updated {formatJakartaTimestamp(data.generatedAt)}.</p>
+          <p className="muted-small">
+            {fill(text.insights.updated, { time: formatJakartaTimestamp(data.generatedAt, locale) })}
+          </p>
         ) : null}
       </div>
 
@@ -57,10 +68,10 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
           <div className="empty-icon">
             <Icon name="alert" size={26} />
           </div>
-          <h2>Insights unavailable</h2>
-          <p>{error}</p>
+          <h2>{text.insights.unavailableTitle}</h2>
+          <p>{error === "unconfigured" ? text.insights.unconfigured : text.insights.unavailable}</p>
           <Link className="btn btn-secondary" href="/insights">
-            Try again
+            {text.insights.retry}
           </Link>
         </div>
       ) : data ? (
@@ -68,14 +79,14 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
           <ImpactSummary
             overview={data.overview}
             minFeedback={data.minFeedback}
-            detail="All time. These cards do not follow the 7-day or 30-day chart."
+            detail={text.insights.impactDetail}
           />
 
           <section className="insights-block" aria-labelledby="activity-title">
             <div className="section-heading">
-              <h2 id="activity-title">Scan activity</h2>
-              <nav className="view-tabs" aria-label="Date range">
-                {RANGES.map((option) => (
+              <h2 id="activity-title">{text.insights.activity}</h2>
+              <nav className="view-tabs" aria-label={text.insights.range}>
+                {ranges.map((option) => (
                   <Link
                     key={option.days}
                     href={`/insights?range=${option.days}`}
@@ -98,31 +109,31 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
 
           <div className="insights-columns">
             <section className="insights-block" aria-labelledby="breakdown-title">
-              <h2 id="breakdown-title">What people scan</h2>
+              <h2 id="breakdown-title">{text.insights.whatPeople}</h2>
               <p className="muted-small">
-                Share of scans in the last {data.range} days, grouped by material.
+                {fill(text.insights.materialShare, { range: data.range })}
               </p>
               <MaterialBreakdown items={data.materialBreakdown} />
             </section>
 
             <section className="insights-block" aria-labelledby="top-title">
-              <h2 id="top-title">Most scanned in this range</h2>
-              <p className="muted-small">Top item types from the last {data.range} days.</p>
+              <h2 id="top-title">{text.insights.top}</h2>
+              <p className="muted-small">{fill(text.insights.topNote, { range: data.range })}</p>
               {data.topItems.length === 0 ? (
-                <p className="muted-small">No scans recorded in this range yet.</p>
+                <p className="muted-small">{text.insights.noneInRange}</p>
               ) : (
-                <LeaderboardList items={data.topItems} shareLabel="of this window" />
+                <LeaderboardList items={data.topItems} shareLabel={text.leaderboard.ofWindow} />
               )}
             </section>
           </div>
 
           <section className="insights-block" aria-labelledby="confusion-title">
-            <h2 id="confusion-title">What people find confusing</h2>
+            <h2 id="confusion-title">{text.insights.confusing}</h2>
             <p className="muted-small">
-              Highest share of incorrect feedback, from all stored responses. An item needs at
-              least {data.minFeedback} responses of its own. {data.overview.feedbackCount} response
-              {data.overview.feedbackCount === 1 ? "" : "s"} recorded in total. This is reported
-              confusion, not a confirmed error rate.
+              {fill(text.insights.confusingNote, {
+                min: data.minFeedback,
+                count: feedbackCount,
+              })}
             </p>
             <ConfusionPanel items={data.confusingItems} minFeedback={data.minFeedback} />
           </section>
@@ -132,13 +143,10 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
               <div className="empty-icon">
                 <Icon name="trash" size={26} />
               </div>
-              <h2>No scans recorded yet.</h2>
-              <p>
-                The chart and cards stay visible so the page has a shape. They fill in from real
-                scans only.
-              </p>
+              <h2>{text.insights.emptyTitle}</h2>
+              <p>{text.insights.emptyBody}</p>
               <Link className="btn btn-primary" href="/">
-                Scan an item
+                {text.insights.scan}
                 <Icon name="arrow-right" size={17} />
               </Link>
             </div>
@@ -150,11 +158,9 @@ export function InsightsView({ initialRange, datasets, error, minFeedback }: Pro
 
       <div className="leaderboard-footer">
         <Link className="btn btn-secondary" href="/leaderboard">
-          Back to the leaderboard
+          {text.insights.back}
         </Link>
-        <p className="muted-small">
-          Minimum feedback responses for a confusion ranking: {minFeedback}.
-        </p>
+        <p className="muted-small">{fill(text.insights.minimum, { min: minFeedback })}</p>
       </div>
     </main>
   );

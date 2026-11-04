@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { ImpactSummary } from "@/components/insights/ImpactSummary";
 import { ConfusingList } from "@/components/leaderboard/ConfusingList";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
@@ -11,7 +12,10 @@ import {
 } from "@/components/leaderboard/LeaderboardTabs";
 import { Icon } from "@/components/ui/Icon";
 import { formatJakartaTimestamp } from "@/lib/format";
+import { countLabel, fill } from "@/lib/i18n/messages";
 import type { ConfusingItem, LeaderboardItem, Overview } from "@/lib/types";
+
+type PageError = "unconfigured" | "unavailable";
 
 type Props = {
   initialView: LeaderboardViewName;
@@ -19,7 +23,7 @@ type Props = {
   confusing: ConfusingItem[];
   overview: Overview | null;
   updatedAt: string | null;
-  error: string | null;
+  error: PageError | null;
   minFeedback: number;
 };
 
@@ -32,8 +36,15 @@ export function LeaderboardView({
   error,
   minFeedback,
 }: Props) {
+  const { locale, copy: text } = useI18n();
   const [view, setView] = useState<LeaderboardViewName>(initialView);
   const isConfusing = view === "confusing";
+  const feedbackCount = countLabel(
+    locale,
+    overview?.feedbackCount ?? 0,
+    text.insights.responseOne,
+    text.insights.responseMany,
+  );
 
   function selectView(next: LeaderboardViewName) {
     if (next === view) return;
@@ -48,15 +59,13 @@ export function LeaderboardView({
   return (
     <main className="leaderboard-page">
       <div className="leaderboard-head">
-        <p className="kicker">Public leaderboard</p>
-        <h1>{isConfusing ? "Most confusing items." : "Most-scanned items."}</h1>
-        <p>
-          {isConfusing
-            ? "Items where people reported the result was wrong. A ranking appears only after enough feedback on that item. This is reported confusion, not a confirmed model error."
-            : "All-time counts from stored scans. No accounts, no seeded numbers, and corrections do not rewrite the ranking."}
-        </p>
+        <p className="kicker">{text.leaderboard.kicker}</p>
+        <h1>{isConfusing ? text.leaderboard.confusingTitle : text.leaderboard.scannedTitle}</h1>
+        <p>{isConfusing ? text.leaderboard.confusingIntro : text.leaderboard.scannedIntro}</p>
         {updatedAt ? (
-          <p className="muted-small">Updated {formatJakartaTimestamp(updatedAt)}.</p>
+          <p className="muted-small">
+            {fill(text.leaderboard.updated, { time: formatJakartaTimestamp(updatedAt, locale) })}
+          </p>
         ) : null}
       </div>
 
@@ -64,7 +73,7 @@ export function LeaderboardView({
         <ImpactSummary
           overview={overview}
           minFeedback={minFeedback}
-          detail="All time, same scans as the ranking below."
+          detail={text.leaderboard.impactDetail}
         />
       ) : null}
 
@@ -75,10 +84,12 @@ export function LeaderboardView({
           <div className="empty-icon">
             <Icon name="alert" size={26} />
           </div>
-          <h2>Leaderboard unavailable</h2>
-          <p>{error}</p>
+          <h2>{text.leaderboard.unavailableTitle}</h2>
+          <p>
+            {error === "unconfigured" ? text.leaderboard.unconfigured : text.leaderboard.unavailable}
+          </p>
           <Link className="btn btn-secondary" href="/leaderboard">
-            Try again
+            {text.leaderboard.retry}
           </Link>
         </div>
       ) : isConfusing ? (
@@ -87,16 +98,15 @@ export function LeaderboardView({
             <div className="empty-icon">
               <Icon name="alert" size={26} />
             </div>
-            <h2>Not enough feedback yet.</h2>
+            <h2>{text.leaderboard.notEnough}</h2>
             <p>
-              An item needs at least {minFeedback} feedback responses of its own before it can be
-              ranked. {overview?.feedbackCount ?? 0} response
-              {(overview?.feedbackCount ?? 0) === 1 ? "" : "s"} recorded in total. Responses spread
-              across items do not add up to a ranking, and no percentage is shown until the
-              threshold is met.
+              {fill(text.leaderboard.notEnoughBody, {
+                min: minFeedback,
+                count: feedbackCount,
+              })}
             </p>
             <Link className="btn btn-primary" href="/">
-              Scan an item
+              {text.leaderboard.scan}
               <Icon name="arrow-right" size={17} />
             </Link>
           </div>
@@ -108,10 +118,10 @@ export function LeaderboardView({
           <div className="empty-icon">
             <Icon name="trash" size={26} />
           </div>
-          <h2>No scans yet.</h2>
-          <p>Be the first to scan an item. The leaderboard fills up from real results only.</p>
+          <h2>{text.leaderboard.noScans}</h2>
+          <p>{text.leaderboard.noScansBody}</p>
           <Link className="btn btn-primary" href="/">
-            Scan an item
+            {text.leaderboard.scan}
             <Icon name="arrow-right" size={17} />
           </Link>
         </div>
@@ -121,16 +131,14 @@ export function LeaderboardView({
 
       <div className="leaderboard-footer">
         <Link className="btn btn-secondary" href="/">
-          Back to the scanner
+          {text.leaderboard.back}
         </Link>
         <Link className="btn btn-secondary" href="/insights">
-          Open the insights dashboard
+          {text.leaderboard.insights}
           <Icon name="arrow-right" size={17} />
         </Link>
         <p className="muted-small">
-          {isConfusing
-            ? "Rankings use the share of feedback responses marked incorrect. Corrections are stored as unverified feedback and are not treated as confirmed errors."
-            : "Rankings count the item type the model predicted. Corrections are stored as unverified feedback and do not rewrite scan history."}
+          {isConfusing ? text.leaderboard.confusingNote : text.leaderboard.scannedNote}
         </p>
       </div>
     </main>

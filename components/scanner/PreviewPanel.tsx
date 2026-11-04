@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { Icon } from "@/components/ui/Icon";
 
 export function PreviewPanel({
@@ -21,18 +22,23 @@ export function PreviewPanel({
   onRemove: () => void;
   onCancel: () => void;
 }) {
-  const status = isLoading ? "Reading the item..." : cancelled ? "Scan cancelled" : "Ready to scan";
-  const detail = isLoading
-    ? "Identifying material and waste stream."
+  const { copy: text } = useI18n();
+  const status = isLoading
+    ? text.scanner.reading
     : cancelled
-      ? "Nothing was saved. You can analyze this photo again."
-      : "The photo is sent for analysis and is not stored by TrashDex.";
+      ? text.scanner.scanCancelled
+      : text.scanner.readyToScan;
+  const detail = isLoading
+    ? text.scanner.identifying
+    : cancelled
+      ? text.scanner.nothingSaved
+      : text.scanner.photoNote;
 
   return (
     <div>
       <div className={`preview-frame${isLoading ? " is-loading" : ""}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={previewUrl} alt="Selected waste item" />
+        <img src={previewUrl} alt={text.scanner.previewAlt} />
         {isLoading ? <span className="scan-line" aria-hidden="true" /> : null}
       </div>
 
@@ -44,22 +50,22 @@ export function PreviewPanel({
           <p className="muted-small">{detail}</p>
           {isLoading && slow ? (
             <p className="slow-note" role="status">
-              Still working…
+              {text.scanner.stillWorking}
             </p>
           ) : null}
         </div>
         {isLoading ? (
           <button type="button" className="btn btn-secondary" onClick={onCancel}>
             <Icon name="x" size={17} />
-            Cancel
+            {text.scanner.cancel}
           </button>
         ) : (
           <div className="preview-actions">
             <button type="button" className="btn btn-ghost" onClick={onRemove}>
-              Remove
+              {text.scanner.remove}
             </button>
             <button type="button" className="btn btn-secondary" onClick={onReplace}>
-              Replace
+              {text.scanner.replace}
             </button>
           </div>
         )}
@@ -68,7 +74,7 @@ export function PreviewPanel({
       {!isLoading ? (
         <button type="button" className="btn btn-primary btn-block" onClick={onAnalyze}>
           <Icon name="arrow-right" size={17} />
-          Analyze item
+          {text.scanner.analyze}
         </button>
       ) : null}
     </div>

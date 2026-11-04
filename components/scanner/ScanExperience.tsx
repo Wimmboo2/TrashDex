@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { Dropzone } from "@/components/scanner/Dropzone";
 import { PreviewPanel } from "@/components/scanner/PreviewPanel";
 import { ResultCard } from "@/components/scanner/ResultCard";
 import { Icon } from "@/components/ui/Icon";
+import type { Copy } from "@/lib/i18n/messages";
 import type {
   ApiErrorBody,
   DisposalContext,
@@ -52,15 +54,16 @@ function ContextPicker({
   value: DisposalContext | null;
   onChange: (value: DisposalContext | null) => void;
 }) {
+  const { copy: text } = useI18n();
   const options: { value: DisposalContext | null; label: string }[] = [
-    { value: null, label: "General" },
-    { value: "school", label: "School" },
-    { value: "neighborhood", label: "Neighborhood" },
+    { value: null, label: text.scanner.general },
+    { value: "school", label: text.scanner.school },
+    { value: "neighborhood", label: text.scanner.neighborhood },
   ];
 
   return (
     <fieldset className="context-picker">
-      <legend>Guidance context</legend>
+      <legend>{text.scanner.contextLegend}</legend>
       <div className="context-options">
         {options.map((option) => {
           const id = `disposal-context-${option.value ?? "general"}`;
@@ -78,11 +81,15 @@ function ContextPicker({
           );
         })}
       </div>
-      <p className="muted-small">
-        Optional. Adds a school or neighborhood note. Steps stay general guidance for Indonesia.
-      </p>
+      <p className="muted-small">{text.scanner.contextHelp}</p>
     </fieldset>
   );
+}
+
+function messageForCode(code: string, text: Copy): string {
+  if (code === "NETWORK") return text.scanner.network;
+  if (code in text.errors) return text.errors[code as keyof Copy["errors"]];
+  return text.scanner.fallback;
 }
 
 function ResultSkeleton() {
@@ -99,6 +106,7 @@ function ResultSkeleton() {
 }
 
 export function ScanExperience() {
+  const { copy: text } = useI18n();
   const [phase, setPhase] = useState<Phase>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -106,7 +114,7 @@ export function ScanExperience() {
   const [notWaste, setNotWaste] = useState<NotWasteResult | null>(null);
   const [scanId, setScanId] = useState<string | null>(null);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<"heic" | "type" | "large" | "unreadable" | null>(null);
   const [disposalContext, setDisposalContext] = useState<DisposalContext | null>(null);
   const [slowScan, setSlowScan] = useState(false);
 
@@ -140,16 +148,12 @@ export function ScanExperience() {
     setFileError(null);
 
     if (selected.type && !ALLOWED_TYPES.has(selected.type)) {
-      setFileError(
-        selected.type === "image/heic" || selected.type === "image/heif"
-          ? "HEIC images are not supported here. On iPhone, set Camera > Formats > Most Compatible and try again."
-          : "Use a JPEG, PNG, or WebP image.",
-      );
+      setFileError(selected.type === "image/heic" || selected.type === "image/heif" ? "heic" : "type");
       return;
     }
 
     if (selected.size > MAX_INPUT_BYTES) {
-      setFileError("That image is too large. Use an image under 12 MB.");
+      setFileError("large");
       return;
     }
 
@@ -164,7 +168,7 @@ export function ScanExperience() {
       setError(null);
       setPhase("preview");
     } catch {
-      setFileError("That image could not be read. Try a JPEG or PNG photo.");
+      setFileError("unreadable");
     }
   }
 
@@ -217,18 +221,14 @@ export function ScanExperience() {
       if (requestId !== requestIdRef.current) return;
 
       if (!response.ok) {
-        const message =
-          data && "error" in data && data.error?.message
-            ? data.error.message
-            : "That scan did not go through. Try again.";
         const code = data && "error" in data && data.error?.code ? data.error.code : "INTERNAL";
-        setError({ code, message });
+        setError({ code, message: messageForCode(code, text) });
         setPhase("error");
         return;
       }
 
       if (!data || !("result" in data)) {
-        setError({ code: "INTERNAL", message: "The scanner returned an empty result. Try again." });
+        setError({ code: "INTERNAL", message: text.scanner.emptyResult });
         setPhase("error");
         return;
       }
@@ -255,12 +255,12 @@ export function ScanExperience() {
       if (caught instanceof DOMException && caught.name === "AbortError") {
         setError({
           code: "UPSTREAM_TIMEOUT",
-          message: "The scan took too long. Try a smaller or clearer photo.",
+          message: text.scanner.timeout,
         });
       } else {
         setError({
           code: "NETWORK",
-          message: "Could not reach the scanner. Check your connection and try again.",
+          message: text.scanner.network,
         });
       }
       setPhase("error");
@@ -287,20 +287,34 @@ export function ScanExperience() {
 
   const statusLabel =
     phase === "loading"
-      ? "Analyzing"
+      ? text.scanner.analyzing
       : phase === "cancelled"
-        ? "Cancelled"
+        ? text.scanner.cancelled
         : phase === "success"
-          ? "Result"
+          ? text.scanner.result
           : phase === "error"
-            ? "Try again"
-            : "Ready";
+            ? text.scanner.tryAgain
+            : text.scanner.ready;
+
+  const visibleError = error
+    ? { code: error.code, message: messageForCode(error.code, text) }
+    : null;
+  const fileErrorText =
+    fileError === "heic"
+      ? text.scanner.heic
+      : fileError === "type"
+        ? text.scanner.useImage
+        : fileError === "large"
+          ? text.scanner.tooLarge
+          : fileError === "unreadable"
+            ? text.scanner.unreadable
+            : null;
 
   return (
     <section className="scanner-card" aria-labelledby="scanner-title" aria-busy={phase === "loading"}>
       <div className="scanner-top">
         <div>
-          <h2 id="scanner-title">Scan a waste item</h2>
+          <h2 id="scanner-title">{text.scanner.title}</h2>
         </div>
         <span className={`status-pill status-${phase}`}>{statusLabel}</span>
       </div>
@@ -330,7 +344,7 @@ export function ScanExperience() {
           onFile={(selected) => void handleFile(selected)}
           onPickCamera={() => cameraInputRef.current?.click()}
           onPickUpload={() => uploadInputRef.current?.click()}
-          error={fileError}
+          error={fileErrorText}
         />
       ) : null}
 
@@ -366,30 +380,36 @@ export function ScanExperience() {
           </div>
           <h3>
             {notWaste.outcome === "multiple-items"
-              ? "Scan one item at a time."
-              : "No clear waste item found."}
+              ? text.scanner.multipleTitle
+              : text.scanner.notWasteTitle}
           </h3>
-          <p>{notWaste.message}</p>
+          <p>
+            {notWaste.outcome === "multiple-items"
+              ? text.scanner.multipleBody
+              : text.scanner.notWasteBody}
+          </p>
           <button type="button" className="btn btn-primary" onClick={reset}>
             <Icon name="refresh" size={17} />
-            Try another photo
+            {text.scanner.tryAnother}
           </button>
         </div>
       ) : null}
 
-      {phase === "error" && error ? (
+      {phase === "error" && visibleError ? (
         <div className="error-panel" role="alert">
           <div className="error-icon">
             <Icon name="alert" size={24} />
           </div>
           <div>
-            <h3>That scan did not go through.</h3>
-            <p>{error.message}</p>
-            <p className="error-code">Reference: {error.code}</p>
+            <h3>{text.scanner.failedTitle}</h3>
+            <p>{visibleError.message}</p>
+            <p className="error-code">
+              {text.scanner.reference}: {visibleError.code}
+            </p>
           </div>
           <button type="button" className="btn btn-primary" onClick={reset}>
             <Icon name="refresh" size={17} />
-            Try another photo
+            {text.scanner.tryAnother}
           </button>
         </div>
       ) : null}

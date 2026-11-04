@@ -6,9 +6,9 @@ const SOURCE_NOTE =
 
 const CONTEXT_NOTES: Record<DisposalContext, string> = {
   school:
-    "School note: use your school bins when they exist. Bank sampah, TPS 3R, and B3 drop-offs are for items the school does not take.",
+    "School note: use your school bins when they exist. Waste banks, 3R facilities, and hazardous drop-offs are for items the school does not take.",
   neighborhood:
-    "Neighborhood note: ask a nearby bank sampah or TPS 3R what they accept. This app does not know your area.",
+    "Neighborhood note: ask a nearby waste bank or a 3R facility what they accept. This app does not know your area.",
 };
 
 type PlaceId = LocalOption["id"];
@@ -30,9 +30,9 @@ type RuleBody = {
 };
 
 const PLACE_TITLES: Record<PlaceId, string> = {
-  bank_sampah: "Bank sampah",
-  tps3r: "TPS 3R",
-  b3_dropoff: "B3 drop-off",
+  bank_sampah: "Waste bank",
+  tps3r: "3R facility",
+  b3_dropoff: "Hazardous drop-off",
 };
 
 const DEFAULT_SCRAP: ScrapDraft = {
@@ -42,23 +42,23 @@ const DEFAULT_SCRAP: ScrapDraft = {
 
 const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
   plastic: {
-    headline: "Rinse it, then ask a bank sampah",
+    headline: "Rinse it, then ask a waste bank",
     steps: [
       "Empty and rinse off food or drink.",
       "Dry it and keep caps separate when they are a different plastic.",
-      "Take clean, sorted plastic to a bank sampah. Do not mix films and bottles in one sack.",
+      "Take clean, sorted plastic to a waste bank. Do not mix films and bottles in one sack.",
     ],
     warnings: ["A recycling number is not a promise that a local buyer accepts it."],
     places: [
       {
         id: "bank_sampah",
         detail:
-          "Some bank sampah buy clean hard plastic, especially PET bottles. Each unit sets its own list.",
+          "Some waste banks buy clean hard plastic, especially PET bottles. Each unit sets its own list.",
       },
       {
         id: "tps3r",
         detail:
-          "A TPS 3R may take plastic a bank sampah refuses. That is sorted waste, not a guaranteed sale.",
+          "A 3R facility may take plastic a waste bank refuses. That is sorted waste, not a guaranteed sale.",
       },
     ],
     scrap: {
@@ -71,18 +71,18 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     steps: [
       "Empty and rinse the bottle or jar.",
       "Remove the cap or lid.",
-      "Keep it intact. Wrap broken glass and keep shards out of a bank sampah sack.",
+      "Keep it intact. Wrap broken glass and keep shards out of a waste bank sack.",
     ],
     warnings: ["Broken glass belongs in residual waste, wrapped so nobody is cut."],
     places: [
       {
         id: "bank_sampah",
         detail:
-          "Some bank sampah take intact bottles and jars. Payment is often low, and broken glass is usually refused.",
+          "Some waste banks take intact bottles and jars. Payment is often low, and broken glass is usually refused.",
       },
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R before leaving glass there. Broken glass needs to be wrapped.",
+        detail: "Ask the 3R facility before leaving glass there. Broken glass needs to be wrapped.",
       },
     ],
     scrap: {
@@ -102,11 +102,11 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
       {
         id: "bank_sampah",
         detail:
-          "Bank sampah commonly accept clean aluminum cans. Steel cans are accepted less consistently.",
+          "Waste banks commonly accept clean aluminum cans. Steel cans are accepted less consistently.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R can take rinsed cans with other sorted recyclables.",
+        detail: "A 3R facility can take rinsed cans with other sorted recyclables.",
       },
     ],
     scrap: {
@@ -119,18 +119,18 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     steps: [
       "Remove food, tape, and plastic windows if they come off.",
       "Flatten boxes and keep the paper dry.",
-      "Take clean paper and cardboard to a bank sampah or a collector.",
+      "Take clean paper and cardboard to a waste bank or a collector.",
     ],
     warnings: ["Greasy or wet paper is residual waste."],
     places: [
       {
         id: "bank_sampah",
         detail:
-          "Bank sampah commonly buy clean cardboard and paper. Wet or food-stained paper is usually refused.",
+          "Waste banks commonly buy clean cardboard and paper. Wet or food-stained paper is usually refused.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R may accept dry paper and cardboard with sorted recyclables.",
+        detail: "A 3R facility may accept dry paper and cardboard with sorted recyclables.",
       },
     ],
     scrap: {
@@ -143,18 +143,18 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     steps: [
       "Remove every piece of packaging.",
       "Drain excess liquid.",
-      "Use a school compost or a TPS 3R organic process only if they accept this kind of waste.",
+      "Use a school compost or a 3R facility organic process only if they accept this kind of waste.",
     ],
     warnings: ["Meat, dairy, and oily scraps are refused by many compost systems."],
     places: [
       {
         id: "bank_sampah",
-        detail: "Bank sampah do not buy food scraps or garden waste.",
+        detail: "Waste banks do not buy food scraps or garden waste.",
       },
       {
         id: "tps3r",
         detail:
-          "Many TPS 3R compost or process organic waste. Ask about meat, bones, and oil before you drop it off.",
+          "Many 3R facilities compost or process organic waste. Ask about meat, bones, and oil before you drop it off.",
       },
     ],
     scrap: {
@@ -167,17 +167,17 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     steps: [
       "If it is clean and still wearable, donate or repair it.",
       "Keep it dry. Moldy textiles are residual waste.",
-      "Ask about a community or school collection. Most bank sampah do not buy clothes.",
+      "Ask about a community or school collection. Most waste banks do not buy clothes.",
     ],
     warnings: ["Wet or moldy textiles usually cannot be reused."],
     places: [
       {
         id: "bank_sampah",
-        detail: "Most bank sampah do not buy clothing. A few community collections take clean textiles.",
+        detail: "Most waste banks do not buy clothing. A few community collections take clean textiles.",
       },
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R. Textiles are often residual unless a separate collection exists.",
+        detail: "Ask the 3R facility. Textiles are often residual unless a separate collection exists.",
       },
     ],
     scrap: {
@@ -188,16 +188,16 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
   electronic: {
     headline: "Use a formal e-waste drop-off",
     steps: [
-      "Do not put it in a household bin or a bank sampah sack.",
+      "Do not put it in a household bin or a waste bank sack.",
       "Erase personal data, and remove batteries if you can do that without breaking the device.",
-      "Take it to an e-waste or B3 collection. Coverage is uneven, so ask a dinas lingkungan hidup office or a retailer take-back.",
+      "Take it to an e-waste or hazardous-waste collection. Coverage is uneven, so ask a local environment office or a retailer take-back.",
     ],
     warnings: ["Do not burn electronics to recover metal."],
     places: [
       {
         id: "b3_dropoff",
         detail:
-          "Formal e-waste and B3 drop-offs are not in every city. A dinas lingkungan hidup office, a school drive, or a retailer take-back is the safer route when one exists.",
+          "Formal e-waste and hazardous drop-offs are not in every city. A local environment office, a school drive, or a retailer take-back is the safer route when one exists.",
       },
     ],
     scrap: {
@@ -206,18 +206,18 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     },
   },
   hazardous: {
-    headline: "Keep B3 waste out of ordinary bins",
+    headline: "Keep hazardous waste out of ordinary bins",
     steps: [
-      "Do not put it in household waste, a bank sampah, or a TPS 3R pile.",
+      "Do not put it in household waste, a waste bank, or a 3R facility pile.",
       "Keep it sealed and away from heat, children, and pets.",
-      "Take it to a B3 drop-off if you can find one, or ask the dinas lingkungan hidup. Public drop-offs are still limited.",
+      "Take it to a hazardous drop-off if you can find one, or ask the local environment office. Public drop-offs are still limited.",
     ],
-    warnings: ["Do not puncture, crush, or burn B3 waste."],
+    warnings: ["Do not puncture, crush, or burn hazardous waste."],
     places: [
       {
         id: "b3_dropoff",
         detail:
-          "B3 drop-off points exist in some cities, shops, and malls, and not at all in others. Ask the local dinas lingkungan hidup instead of guessing a bin.",
+          "Hazardous drop-off points exist in some cities, shops, and malls, and not at all in others. Ask the local environment office instead of guessing a bin.",
       },
     ],
     scrap: {
@@ -236,7 +236,7 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     places: [
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R. Most treat small rubber items as residual waste.",
+        detail: "Ask the 3R facility. Most treat small rubber items as residual waste.",
       },
     ],
     scrap: {
@@ -245,7 +245,7 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     },
   },
   wood: {
-    headline: "Reuse untreated wood, or ask a TPS 3R",
+    headline: "Reuse untreated wood, or ask a 3R facility",
     steps: [
       "Reuse it if you can, and remove nails and screws.",
       "Untreated wood may be accepted for compost or reuse.",
@@ -255,7 +255,7 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R may take untreated wood. Treated or painted wood is often refused.",
+        detail: "A 3R facility may take untreated wood. Treated or painted wood is often refused.",
       },
     ],
     scrap: {
@@ -274,7 +274,7 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R will usually treat ceramic as residual waste, not as recyclable glass.",
+        detail: "A 3R facility will usually treat ceramic as residual waste, not as recyclable glass.",
       },
     ],
     scrap: {
@@ -294,11 +294,11 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
       {
         id: "bank_sampah",
         detail:
-          "Most bank sampah refuse sachets and other multilayer packs. Leave one only if that unit lists it.",
+          "Most waste banks refuse sachets and other multilayer packs. Leave one only if that unit lists it.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually treats composite packaging as residual waste.",
+        detail: "A 3R facility usually treats composite packaging as residual waste.",
       },
     ],
     scrap: {
@@ -310,14 +310,14 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
     headline: "Ask before you sort this",
     steps: [
       "Do not put an unknown item in a recycling sack.",
-      "Ask your school, a bank sampah, or a TPS 3R.",
+      "Ask your school, a waste bank, or a 3R facility.",
       "If nobody accepts it, use residual waste.",
     ],
     warnings: ["When the material is unclear, keep it out of recycling."],
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R can say whether the item is residual or needs a special drop-off.",
+        detail: "A 3R facility can say whether the item is residual or needs a special drop-off.",
       },
     ],
     scrap: {
@@ -332,20 +332,20 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Remove the cap and label",
     steps: [
       "Empty and rinse the bottle.",
-      "Peel off the label. Remove the cap and bag caps separately if a bank sampah wants them. Caps are usually a different plastic.",
+      "Peel off the label. Remove the cap and bag caps separately if a waste bank wants them. Caps are usually a different plastic.",
       "Crush the bottle so it takes less space.",
-      "Take clean bottles to a bank sampah or a scrap collector who buys PET. A school PET bin is fine when the school collects bottles.",
+      "Take clean bottles to a waste bank or a scrap collector who buys PET. A school PET bin is fine when the school collects bottles.",
     ],
     warnings: ["Oily or food-stained bottles are often rejected."],
     places: [
       {
         id: "bank_sampah",
         detail:
-          "Bank sampah commonly accept clean PET bottles and pay by weight. Prices and rules are set by that unit.",
+          "Waste banks commonly accept clean PET bottles and pay by weight. Prices and rules are set by that unit.",
       },
       {
         id: "tps3r",
-        detail: "If there is no bank sampah, ask the TPS 3R to keep bottles separate from residual waste.",
+        detail: "If there is no waste bank, ask the 3R facility to keep bottles separate from residual waste.",
       },
     ],
     scrap: {
@@ -366,11 +366,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Most bank sampah do not buy thin bags. A few collect them separately.",
+        detail: "Most waste banks do not buy thin bags. A few collect them separately.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually treats thin bags as residual waste.",
+        detail: "A 3R facility usually treats thin bags as residual waste.",
       },
     ],
     scrap: {
@@ -389,11 +389,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Some bank sampah take clean tubs. Ask, because many only want bottles.",
+        detail: "Some waste banks take clean tubs. Ask, because many only want bottles.",
       },
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R if the bank sampah will not take the container.",
+        detail: "Ask the 3R facility if the waste bank will not take the container.",
       },
     ],
     scrap: {
@@ -414,11 +414,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Most bank sampah refuse plastic film and wrappers.",
+        detail: "Most waste banks refuse plastic film and wrappers.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually treats film as residual waste.",
+        detail: "A 3R facility usually treats film as residual waste.",
       },
     ],
     scrap: {
@@ -430,7 +430,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Ask before treating a plastic cup as recycling",
     steps: [
       "Empty it, rinse grease, and separate the lid and straw.",
-      "Thin cups are low value. A bank sampah may refuse them even when it buys bottles.",
+      "Thin cups are low value. A waste bank may refuse them even when it buys bottles.",
       "If nobody wants them, use residual waste.",
     ],
     warnings: ["Do not mix thin cups into a sack of PET bottles."],
@@ -438,11 +438,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Ask first. Many bank sampah do not pay for thin plastic cups.",
+        detail: "Ask first. Many waste banks do not pay for thin plastic cups.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R will often treat refused cups as residual waste.",
+        detail: "A 3R facility will often treat refused cups as residual waste.",
       },
     ],
     scrap: {
@@ -462,7 +462,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R treats plastic cutlery as residual waste.",
+        detail: "A 3R facility treats plastic cutlery as residual waste.",
       },
     ],
     scrap: {
@@ -482,11 +482,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Bank sampah almost never accept styrofoam.",
+        detail: "Waste banks almost never accept styrofoam.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually sends styrofoam to residual waste.",
+        detail: "A 3R facility usually sends styrofoam to residual waste.",
       },
     ],
     scrap: {
@@ -498,7 +498,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Donate a usable toy; broken toys are residual",
     steps: [
       "Donate it if it is intact and clean.",
-      "Remove batteries first. Batteries are B3 waste.",
+      "Remove batteries first. Batteries are hazardous waste.",
       "A broken toy goes in residual waste.",
     ],
     warnings: ["Do not leave batteries inside a discarded toy."],
@@ -506,7 +506,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R treats broken plastic toys as residual waste.",
+        detail: "A 3R facility treats broken plastic toys as residual waste.",
       },
     ],
     scrap: {
@@ -519,14 +519,14 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     steps: [
       "Wrap the glass in thick paper or cardboard.",
       "Mark the bundle so nobody grabs it bare-handed.",
-      "Use residual waste unless a TPS 3R has a separate broken-glass collection.",
+      "Use residual waste unless a 3R facility has a separate broken-glass collection.",
     ],
-    warnings: ["Never put loose broken glass in a bank sampah sack."],
+    warnings: ["Never put loose broken glass in a waste bank sack."],
     wasteStream: "special_dropoff",
     places: [
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R. Many only accept broken glass as wrapped residual waste.",
+        detail: "Ask the 3R facility. Many only accept broken glass as wrapped residual waste.",
       },
     ],
     scrap: {
@@ -540,17 +540,17 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
       "Empty and rinse the can.",
       "You can crush it. Leave the tab on.",
       "Keep it separate from steel if you can.",
-      "Take it to a bank sampah or sell it to a scrap collector.",
+      "Take it to a waste bank or sell it to a scrap collector.",
     ],
     warnings: [],
     places: [
       {
         id: "bank_sampah",
-        detail: "Bank sampah commonly accept clean aluminum cans.",
+        detail: "Waste banks commonly accept clean aluminum cans.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R can take rinsed cans with sorted recyclables.",
+        detail: "A 3R facility can take rinsed cans with sorted recyclables.",
       },
     ],
     scrap: {
@@ -564,17 +564,17 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
       "Empty and rinse it.",
       "Push the lid inside or cover the cut edge.",
       "Remove a loose paper label if it comes off easily.",
-      "Sell it to a scrap collector, or ask a bank sampah if they take steel.",
+      "Sell it to a scrap collector, or ask a waste bank if they take steel.",
     ],
     warnings: [],
     places: [
       {
         id: "bank_sampah",
-        detail: "Some bank sampah take steel cans. Many pay only for aluminum.",
+        detail: "Some waste banks take steel cans. Many pay only for aluminum.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R can add rinsed steel cans to sorted metal.",
+        detail: "A 3R facility can add rinsed steel cans to sorted metal.",
       },
     ],
     scrap: {
@@ -593,7 +593,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Some bank sampah take clean cans. Larger scrap usually goes to a collector, not a bank sampah.",
+        detail: "Some waste banks take clean cans. Larger scrap usually goes to a collector, not a waste bank.",
       },
     ],
     scrap: {
@@ -602,11 +602,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     },
   },
   "aerosol-can": {
-    headline: "Treat aerosol cans as B3 waste",
+    headline: "Treat aerosol cans as hazardous waste",
     steps: [
       "Do not puncture, crush, or burn the can.",
       "If it still sprays or contains product, keep it as hazardous waste.",
-      "Ask a B3 drop-off or the dinas lingkungan hidup. Do not put it in a bank sampah sack.",
+      "Ask a hazardous drop-off or the local environment office. Do not put it in a waste bank sack.",
     ],
     warnings: ["A pressurized can can explode if it is crushed or heated."],
     wasteStream: "hazardous",
@@ -614,7 +614,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
       {
         id: "b3_dropoff",
         detail:
-          "Aerosol cans are household B3. Drop-off coverage is uneven, so ask the dinas lingkungan hidup rather than a regular bin.",
+          "Aerosol cans are household hazardous waste. Drop-off coverage is uneven, so ask the local environment office rather than a regular bin.",
       },
     ],
     scrap: {
@@ -634,11 +634,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Bank sampah usually refuse lined paper cups.",
+        detail: "Waste banks usually refuse lined paper cups.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually treats lined cups as residual waste.",
+        detail: "A 3R facility usually treats lined cups as residual waste.",
       },
     ],
     scrap: {
@@ -659,11 +659,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
       {
         id: "bank_sampah",
         detail:
-          "Bank sampah commonly buy plain paperboard. Many refuse lined drink cartons, so ask about the exact pack.",
+          "Waste banks commonly buy plain paperboard. Many refuse lined drink cartons, so ask about the exact pack.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R can sort plain paperboard with paper and lined cartons with residual waste.",
+        detail: "A 3R facility can sort plain paperboard with paper and lined cartons with residual waste.",
       },
     ],
     scrap: {
@@ -683,7 +683,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R before composting tissue. If they refuse it, it is residual waste.",
+        detail: "Ask the 3R facility before composting tissue. If they refuse it, it is residual waste.",
       },
     ],
     scrap: {
@@ -696,19 +696,19 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     steps: [
       "Remove packaging, sauce packets, and plastic.",
       "Drain liquids.",
-      "Use a school compost or TPS 3R organic bin if they accept this food.",
+      "Use a school compost or a 3R facility organic bin if they accept this food.",
       "Meat, bones, and oily scraps are often refused. Ask before you add them.",
     ],
-    warnings: ["Do not put food scraps in a bank sampah sack."],
+    warnings: ["Do not put food scraps in a waste bank sack."],
     places: [
       {
         id: "bank_sampah",
-        detail: "Bank sampah do not buy food scraps.",
+        detail: "Waste banks do not buy food scraps.",
       },
       {
         id: "tps3r",
         detail:
-          "Many TPS 3R process organic waste. Acceptance of meat, bones, and oil varies by site.",
+          "Many 3R facilities process organic waste. Acceptance of meat, bones, and oil varies by site.",
       },
     ],
     scrap: {
@@ -717,17 +717,17 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     },
   },
   "garden-waste": {
-    headline: "Take garden waste to compost, not to a bank sampah",
+    headline: "Take garden waste to compost, not to a waste bank",
     steps: [
       "Remove plastic ties, pots, and wire.",
-      "Leaves and small trimmings can go to a school compost or TPS 3R if they take garden waste.",
+      "Leaves and small trimmings can go to a school compost or a 3R facility if they take garden waste.",
       "Thick branches and treated wood are often refused.",
     ],
     warnings: ["Do not mix garden waste with food packaging."],
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R is the usual place for garden waste. Small sites may refuse woody branches.",
+        detail: "A 3R facility is the usual place for garden waste. Small sites may refuse woody branches.",
       },
     ],
     scrap: {
@@ -736,11 +736,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     },
   },
   battery: {
-    headline: "Tape loose terminals and use a B3 drop-off",
+    headline: "Tape loose terminals and use a hazardous drop-off",
     steps: [
-      "Do not put batteries in a household bin, a bank sampah, or a scrap pile.",
+      "Do not put batteries in a household bin, a waste bank, or a scrap pile.",
       "Tape the terminals of loose 9V and button cells so they cannot short. Do not puncture a swollen battery.",
-      "Take them to a B3 or battery drop-off. Some electronics shops and malls collect batteries. Many areas have none, so ask the dinas lingkungan hidup.",
+      "Take them to a hazardous-waste or battery drop-off. Some electronics shops and malls collect batteries. Many areas have none, so ask the local environment office.",
     ],
     warnings: ["Damaged or swollen batteries can catch fire."],
     wasteStream: "hazardous",
@@ -761,7 +761,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     steps: [
       "Back up what you need, then erase personal data.",
       "Remove the battery if the device allows it without force.",
-      "Use a retailer take-back, a school collection, or a dinas lingkungan hidup drop-off when one exists.",
+      "Use a retailer take-back, a school collection, or a local environment office drop-off when one exists.",
     ],
     warnings: ["Do not break the device open to pull out valuable parts."],
     wasteStream: "electronic",
@@ -781,8 +781,8 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Keep bulbs out of glass recycling",
     steps: [
       "Do not break the bulb. Fluorescent tubes and CFLs can contain mercury.",
-      "Wrap it and keep it out of a glass or bank sampah sack.",
-      "Take fluorescent bulbs to a B3 drop-off if you can find one. LED and incandescent bulbs are still not glass recycling.",
+      "Wrap it and keep it out of a glass sack or a waste bank sack.",
+      "Take fluorescent bulbs to a hazardous drop-off if you can find one. LED and incandescent bulbs are still not glass recycling.",
     ],
     warnings: ["Do not vacuum a broken fluorescent bulb into household recycling."],
     wasteStream: "hazardous",
@@ -790,7 +790,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
       {
         id: "b3_dropoff",
         detail:
-          "Fluorescent bulbs are B3. A local drop-off may not exist, so ask the dinas lingkungan hidup.",
+          "Fluorescent bulbs are hazardous waste. A local drop-off may not exist, so ask the local environment office.",
       },
     ],
     scrap: {
@@ -819,11 +819,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     },
   },
   "medical-waste": {
-    headline: "Use a medical or B3 route, not a household bin",
+    headline: "Use a medical or hazardous-waste route, not a household bin",
     steps: [
-      "Keep it away from household waste and bank sampah sacks.",
+      "Keep it away from household waste and waste bank sacks.",
       "Put sharps in a rigid, closed container.",
-      "Follow the school clinic, puskesmas, or a B3 medical drop-off. Do not invent a bin.",
+      "Follow the school clinic, a community health clinic, or a hazardous medical drop-off. Do not invent a bin.",
     ],
     warnings: ["Do not handle needles you do not already manage safely."],
     wasteStream: "hazardous",
@@ -831,7 +831,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
       {
         id: "b3_dropoff",
         detail:
-          "Medical waste needs a clinic, puskesmas, or B3 route. A TPS 3R or bank sampah is not that route.",
+          "Medical waste needs a clinic, a community health clinic, or a hazardous-waste route. A 3R facility or a waste bank is not that route.",
       },
     ],
     scrap: {
@@ -843,18 +843,18 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     headline: "Donate wearable shoes",
     steps: [
       "Donate the pair if it is dry and still wearable.",
-      "Most bank sampah do not buy shoes.",
+      "Most waste banks do not buy shoes.",
       "Worn-out shoes are residual waste unless a collection drive asks for them.",
     ],
     warnings: ["Wet or moldy shoes cannot be donated."],
     places: [
       {
         id: "bank_sampah",
-        detail: "Bank sampah rarely accept shoes.",
+        detail: "Waste banks rarely accept shoes.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually treats worn-out shoes as residual waste.",
+        detail: "A 3R facility usually treats worn-out shoes as residual waste.",
       },
     ],
     scrap: {
@@ -873,7 +873,7 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "A few collections take clean cotton. Most bank sampah do not buy fabric scraps.",
+        detail: "A few collections take clean cotton. Most waste banks do not buy fabric scraps.",
       },
     ],
     scrap: {
@@ -893,11 +893,11 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
     places: [
       {
         id: "bank_sampah",
-        detail: "Most bank sampah refuse multilayer sachets. Accept one only if it is on their list.",
+        detail: "Most waste banks refuse multilayer sachets. Accept one only if it is on their list.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R usually treats composite packaging as residual waste.",
+        detail: "A 3R facility usually treats composite packaging as residual waste.",
       },
     ],
     scrap: {
@@ -925,21 +925,21 @@ const MATERIAL_STREAM: Record<MaterialGroup, WasteStream> = {
 
 const STREAM_RULES: Record<WasteStream, RuleBody> = {
   recycling: {
-    headline: "Sort it clean before a bank sampah will look at it",
+    headline: "Sort it clean before a waste bank will look at it",
     steps: [
       "Empty and rinse it.",
       "Keep it dry and separate from other materials.",
-      "Ask a bank sampah or TPS 3R before you treat it as recycling.",
+      "Ask a waste bank or a 3R facility before you treat it as recycling.",
     ],
     warnings: ["If they refuse it, use residual waste instead of leaving it there."],
     places: [
       {
         id: "bank_sampah",
-        detail: "A bank sampah buys only the materials on its own list.",
+        detail: "A waste bank buys only the materials on its own list.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R may accept sorted recyclables the bank sampah does not buy.",
+        detail: "A 3R facility may accept sorted recyclables the waste bank does not buy.",
       },
     ],
     scrap: {
@@ -955,14 +955,14 @@ const STREAM_RULES: Record<WasteStream, RuleBody> = {
     headline: "Treat this as residual waste",
     steps: [
       "Empty leftover food or liquid.",
-      "Keep it out of the bank sampah sack.",
+      "Keep it out of the waste bank sack.",
       "Put it with residual waste.",
     ],
     warnings: [],
     places: [
       {
         id: "tps3r",
-        detail: "A TPS 3R usually sends this kind of item to residual waste rather than recycling it.",
+        detail: "A 3R facility usually sends this kind of item to residual waste rather than recycling it.",
       },
     ],
     scrap: {
@@ -973,15 +973,15 @@ const STREAM_RULES: Record<WasteStream, RuleBody> = {
   special_dropoff: {
     headline: "This needs a separate collection",
     steps: [
-      "Keep it out of ordinary bins and bank sampah sacks.",
-      "Ask the school or TPS 3R whether a separate drop-off exists.",
+      "Keep it out of ordinary bins and waste bank sacks.",
+      "Ask the school or a 3R facility whether a separate drop-off exists.",
       "If none exists, ask before using residual waste. Some items still do not belong there.",
     ],
     warnings: [],
     places: [
       {
         id: "tps3r",
-        detail: "Ask the TPS 3R. Not every area has a special collection.",
+        detail: "Ask the 3R facility. Not every area has a special collection.",
       },
     ],
     scrap: {
@@ -993,18 +993,18 @@ const STREAM_RULES: Record<WasteStream, RuleBody> = {
     headline: "Check before you treat this as recycling",
     steps: [
       "Do not mix it into a sack of bottles, paper, or cans.",
-      "Ask a bank sampah or TPS 3R about this exact item.",
+      "Ask a waste bank or a 3R facility about this exact item.",
       "If nobody accepts it, use residual waste.",
     ],
     warnings: ["When in doubt, keep it out of recycling."],
     places: [
       {
         id: "bank_sampah",
-        detail: "Ask the bank sampah. If it is not on their list, do not leave it there.",
+        detail: "Ask the waste bank. If it is not on their list, do not leave it there.",
       },
       {
         id: "tps3r",
-        detail: "A TPS 3R can usually say whether it is residual waste.",
+        detail: "A 3R facility can usually say whether it is residual waste.",
       },
     ],
     scrap: {

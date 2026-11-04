@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type DragEvent, type KeyboardEvent } from "react";
+import { useI18n } from "@/components/i18n/LanguageProvider";
 import { Icon } from "@/components/ui/Icon";
 
 export function Dropzone({
@@ -14,6 +15,7 @@ export function Dropzone({
   onPickUpload: () => void;
   error: string | null;
 }) {
+  const { copy: text } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
@@ -36,7 +38,7 @@ export function Dropzone({
         className={`dropzone${isDragging ? " is-dragging" : ""}`}
         role="button"
         tabIndex={0}
-        aria-label="Upload a photo of a waste item"
+        aria-label={text.scanner.uploadLabel}
         onClick={onPickUpload}
         onKeyDown={handleKeyDown}
         onDragEnter={(event) => {
@@ -56,16 +58,16 @@ export function Dropzone({
         <div className="dropzone-icon">
           <Icon name="camera" size={28} />
         </div>
-        <h3>Drop a photo here</h3>
-        <p>Or use your camera. JPEG, PNG, or WebP up to 12 MB.</p>
+        <h3>{text.scanner.dropTitle}</h3>
+        <p>{text.scanner.dropBody}</p>
         <div className="dropzone-actions" onClick={(event) => event.stopPropagation()}>
           <button type="button" className="btn btn-primary" onClick={onPickCamera}>
             <Icon name="camera" size={17} />
-            Take a photo
+            {text.scanner.takePhoto}
           </button>
           <button type="button" className="btn btn-secondary" onClick={onPickUpload}>
             <Icon name="upload" size={17} />
-            Choose image
+            {text.scanner.chooseImage}
           </button>
         </div>
       </div>
