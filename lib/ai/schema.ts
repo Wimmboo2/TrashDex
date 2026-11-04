@@ -21,6 +21,7 @@ export const AiClassificationSchema = z
     materialGroup: z.enum(MATERIAL_GROUPS),
     confidence: z.enum(CONFIDENCE_LEVELS),
     uncertaintyReason: z.string().max(240),
+    multipleItems: z.boolean(),
     alternatives: z
       .array(
         z
@@ -71,6 +72,11 @@ export const AI_JSON_SCHEMA = {
       type: "string",
       description: "Why the result is uncertain. Empty when there is no concern.",
     },
+    multipleItems: {
+      type: "boolean",
+      description:
+        "True when the photo shows more than one distinct waste item. False when a single item is the subject.",
+    },
     alternatives: {
       type: "array",
       maxItems: 2,
@@ -94,6 +100,7 @@ export const AI_JSON_SCHEMA = {
     "materialGroup",
     "confidence",
     "uncertaintyReason",
+    "multipleItems",
     "alternatives",
   ],
 } as const;

@@ -31,7 +31,7 @@ The user has explicitly allowed installs, builds, tests, browser automation, and
 - The app uses `pg` with raw SQL, not an ORM.
 - No accounts, no image storage, no tracking scripts.
 - Disposal guidance is general Indonesia-oriented guidance, not verified local rules.
-- Mock AI modes are test-only: `MOCK_AI=true`, `not-waste`, `low`, `error`. Never enable in production.
+- Mock AI modes are test-only: `MOCK_AI=true`, `not-waste`, `low`, `uncertain`, `multiple`, `error`. Never enable in production.
 - Scope: scanner, feedback, leaderboard, and insights. Do not add gamification, accounts, browser-local progress, or third-party services.
 
 ## Metrics
@@ -80,3 +80,13 @@ These require Playwright and a running app. They write screenshots to `artifacts
 - Real Gemini classification has not been verified because no `GEMINI_API_KEY` was available.
 - Nothing is deployed.
 - Verification sandboxes have been terminated.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -33,6 +33,7 @@ function mockClassification(): AiClassification {
   if (mode === "not-waste") {
     return {
       isWasteItem: false,
+      multipleItems: false,
       itemName: "Houseplant",
       canonicalItem: "other",
       material: "Organic matter",
@@ -43,9 +44,50 @@ function mockClassification(): AiClassification {
     };
   }
 
+  if (mode === "multiple") {
+    return {
+      isWasteItem: true,
+      multipleItems: true,
+      itemName: "Mixed waste",
+      canonicalItem: "other",
+      material: "Mixed materials",
+      materialGroup: "other",
+      confidence: "high",
+      uncertaintyReason: "Several different items are in the frame.",
+      alternatives: [
+        {
+          itemName: "Plastic bottle",
+          canonicalItem: "plastic-bottle",
+          materialGroup: "plastic",
+        },
+      ],
+    };
+  }
+
+  if (mode === "uncertain") {
+    return {
+      isWasteItem: true,
+      multipleItems: false,
+      itemName: "Plastic bottle",
+      canonicalItem: "plastic-bottle",
+      material: "PET plastic (#1)",
+      materialGroup: "plastic",
+      confidence: "high",
+      uncertaintyReason: "The photo is cluttered, so the material is not fully clear.",
+      alternatives: [
+        {
+          itemName: "Plastic cup",
+          canonicalItem: "plastic-cup",
+          materialGroup: "plastic",
+        },
+      ],
+    };
+  }
+
   if (mode === "low") {
     return {
       isWasteItem: true,
+      multipleItems: false,
       itemName: "Composite coffee cup",
       canonicalItem: "composite-packaging",
       material: "Paper with a plastic lining",
@@ -65,6 +107,7 @@ function mockClassification(): AiClassification {
 
   return {
     isWasteItem: true,
+    multipleItems: false,
     itemName: "Plastic water bottle",
     canonicalItem: "plastic-bottle",
     material: "PET plastic (#1)",

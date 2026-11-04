@@ -272,9 +272,13 @@ export function ScanExperience() {
       {phase === "success" && notWaste ? (
         <div className="not-waste" role="status">
           <div className="not-waste-icon">
-            <Icon name="image" size={26} />
+            <Icon name={notWaste.outcome === "multiple-items" ? "alert" : "image"} size={26} />
           </div>
-          <h3>No clear waste item found.</h3>
+          <h3>
+            {notWaste.outcome === "multiple-items"
+              ? "Scan one item at a time."
+              : "No clear waste item found."}
+          </h3>
           <p>{notWaste.message}</p>
           <button type="button" className="btn btn-primary" onClick={reset}>
             <Icon name="refresh" size={17} />

@@ -33,6 +33,8 @@ export type NotWasteResult = {
   isWasteItem: false;
   itemName: string;
   message: string;
+  /** Why this photo was not returned as one classified item. */
+  outcome: "not-waste" | "multiple-items";
 };
 
 export type ScanResultPayload = {
