@@ -46,7 +46,13 @@ export async function getOverview(): Promise<Overview> {
        (select count(*)::int from scan_feedback) as "feedbackCount",
        (select count(*)::int from scan_feedback where verdict = 'correct') as "correctFeedbackCount",
        (select count(*)::int from scan_feedback where verdict = 'incorrect') as "incorrectFeedbackCount",
-       (select count(*)::int from scans where waste_stream in (${DIVERTABLE_STREAMS.map((stream) => `'${stream}'`).join(", ")})) as "divertableScans"`,
+       (select count(*)::int
+        from scans s
+        where s.waste_stream in (${DIVERTABLE_STREAMS.map((stream) => `'${stream}'`).join(", ")})
+          and not exists (
+            select 1 from scan_feedback f
+            where f.scan_id = s.id and f.verdict = 'incorrect'
+          )) as "divertableScans"`,
   );
 
   const row = rows[0];

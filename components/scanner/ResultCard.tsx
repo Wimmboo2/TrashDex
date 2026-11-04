@@ -53,8 +53,24 @@ export function ResultCard({
     do_not_sell: reserve.result.doNotSell,
   }[result.disposal.scrap.buys];
   const modelNote = result.uncertaintyReason.trim();
-  const explanation = modelNote || (result.confidence === "low" ? text.result.lowReason : result.confidence === "medium" ? text.result.mediumReason : "");
-  const explanationReserve = modelNote || (result.confidence === "low" ? reserve.result.lowReason : result.confidence === "medium" ? reserve.result.mediumReason : "");
+  const cannedExplanation =
+    result.confidence === "low"
+      ? text.result.lowReason
+      : result.confidence === "medium"
+        ? text.result.mediumReason
+        : "";
+  const cannedExplanationReserve =
+    result.confidence === "low"
+      ? reserve.result.lowReason
+      : result.confidence === "medium"
+        ? reserve.result.mediumReason
+        : "";
+  const explanation = locale === "id" ? cannedExplanation : modelNote || cannedExplanation;
+  const explanationReserve = locale === "id" ? modelNote || cannedExplanationReserve : cannedExplanationReserve;
+  const itemTitle =
+    locale === "id" ? itemLabel("id", result.canonicalItem, result.itemName) : result.itemName;
+  const itemTitleReserve =
+    locale === "id" ? result.itemName : itemLabel("id", result.canonicalItem, result.itemName);
 
   return (
     <article className={`result-card result-${result.confidence}`} aria-live="polite">
@@ -68,7 +84,9 @@ export function ResultCard({
             <p className="result-kicker">
               <StableText text={text.result.kicker} reserve={reserve.result.kicker} />
             </p>
-            <h3 className="result-title">{result.itemName}</h3>
+            <h3 className="result-title">
+              <StableText block text={itemTitle} reserve={itemTitleReserve} />
+            </h3>
             <div className="result-tags">
               <span className="tag tag-outline">
                 <StableText
@@ -122,17 +140,34 @@ export function ResultCard({
             <StableText text={text.result.couldAlso} reserve={reserve.result.couldAlso} />
           </p>
           <ul>
-            {result.alternatives.map((alternative) => (
-              <li key={alternative.canonicalItem}>
-                <span>{alternative.itemName}</span>
-                <span className="muted-small">
-                  <StableText
-                    text={itemLabel(locale, alternative.canonicalItem, alternative.canonicalItemLabel)}
-                    reserve={itemLabel(otherLocale, alternative.canonicalItem, alternative.canonicalItemLabel)}
-                  />
-                </span>
-              </li>
-            ))}
+            {result.alternatives.map((alternative) => {
+              const name =
+                locale === "id"
+                  ? itemLabel("id", alternative.canonicalItem, alternative.itemName)
+                  : alternative.itemName;
+              const nameReserve =
+                locale === "id"
+                  ? alternative.itemName
+                  : itemLabel("id", alternative.canonicalItem, alternative.itemName);
+              const catalog = itemLabel(locale, alternative.canonicalItem, alternative.canonicalItemLabel);
+              const catalogReserve = itemLabel(
+                otherLocale,
+                alternative.canonicalItem,
+                alternative.canonicalItemLabel,
+              );
+              return (
+                <li key={alternative.canonicalItem}>
+                  <span>
+                    <StableText text={name} reserve={nameReserve} />
+                  </span>
+                  {catalog !== name ? (
+                    <span className="muted-small">
+                      <StableText text={catalog} reserve={catalogReserve} />
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}
