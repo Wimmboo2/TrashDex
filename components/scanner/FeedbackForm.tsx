@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import { Icon } from "@/components/ui/Icon";
 import { itemLabel, materialLabel, streamLabel } from "@/lib/i18n/labels";
 import { CANONICAL_ITEMS, MATERIAL_GROUPS, WASTE_STREAMS } from "@/lib/taxonomy";
@@ -15,7 +16,7 @@ export function FeedbackForm({
   scanId: string | null;
   onSubmitted?: () => void;
 }) {
-  const { locale, copy: text } = useI18n();
+  const { locale, copy: text, reserve } = useI18n();
   const [mode, setMode] = useState<Mode>("idle");
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState<"thanks" | "duplicate" | "">("");
@@ -32,7 +33,13 @@ export function FeedbackForm({
           <span className="feedback-recorded-icon">
             <Icon name="check" size={18} />
           </span>
-          <p>{message === "duplicate" ? text.feedback.duplicate : text.feedback.thanks}</p>
+          <p>
+            <StableText
+              block
+              text={message === "duplicate" ? text.feedback.duplicate : text.feedback.thanks}
+              reserve={message === "duplicate" ? reserve.feedback.duplicate : reserve.feedback.thanks}
+            />
+          </p>
         </div>
       </div>
     );
@@ -42,7 +49,7 @@ export function FeedbackForm({
     return (
       <div className="feedback">
         <p className="muted-small">
-          {text.feedback.unavailable}
+          <StableText block text={text.feedback.unavailable} reserve={reserve.feedback.unavailable} />
         </p>
       </div>
     );
@@ -97,8 +104,12 @@ export function FeedbackForm({
   return (
     <div className="feedback">
       <div className="feedback-head">
-        <h4>{text.feedback.question}</h4>
-        <p className="muted-small">{text.feedback.stored}</p>
+        <h4>
+          <StableText text={text.feedback.question} reserve={reserve.feedback.question} />
+        </h4>
+        <p className="muted-small">
+          <StableText block text={text.feedback.stored} reserve={reserve.feedback.stored} />
+        </p>
       </div>
 
       {mode === "idle" ? (
@@ -110,7 +121,10 @@ export function FeedbackForm({
             disabled={isSending}
           >
             <Icon name="check" size={17} />
-            {isSending ? text.feedback.sending : text.feedback.yes}
+            <StableText
+              text={isSending ? text.feedback.sending : text.feedback.yes}
+              reserve={isSending ? reserve.feedback.sending : reserve.feedback.yes}
+            />
           </button>
           <button
             type="button"
@@ -122,7 +136,7 @@ export function FeedbackForm({
             disabled={isSending}
           >
             <Icon name="x" size={17} />
-            {text.feedback.no}
+            <StableText text={text.feedback.no} reserve={reserve.feedback.no} />
           </button>
         </div>
       ) : null}
@@ -130,7 +144,9 @@ export function FeedbackForm({
       {mode === "correction" ? (
         <div className="feedback-form">
           <div className="field">
-            <label htmlFor="correction-item">{text.feedback.itemLabel}</label>
+            <label htmlFor="correction-item">
+              <StableText block text={text.feedback.itemLabel} reserve={reserve.feedback.itemLabel} />
+            </label>
             <input
               id="correction-item"
               className="input"
@@ -143,7 +159,9 @@ export function FeedbackForm({
           </div>
 
           <div className="field">
-            <label htmlFor="correction-canonical">{text.feedback.typeLabel}</label>
+            <label htmlFor="correction-canonical">
+              <StableText block text={text.feedback.typeLabel} reserve={reserve.feedback.typeLabel} />
+            </label>
             <select
               id="correction-canonical"
               className="input"
@@ -161,7 +179,9 @@ export function FeedbackForm({
           </div>
 
           <div className="field">
-            <label htmlFor="correction-material">{text.feedback.materialLabel}</label>
+            <label htmlFor="correction-material">
+              <StableText block text={text.feedback.materialLabel} reserve={reserve.feedback.materialLabel} />
+            </label>
             <select
               id="correction-material"
               className="input"
@@ -179,7 +199,9 @@ export function FeedbackForm({
           </div>
 
           <div className="field">
-            <label htmlFor="correction-stream">{text.feedback.streamLabel}</label>
+            <label htmlFor="correction-stream">
+              <StableText block text={text.feedback.streamLabel} reserve={reserve.feedback.streamLabel} />
+            </label>
             <select
               id="correction-stream"
               className="input"
@@ -198,7 +220,11 @@ export function FeedbackForm({
 
           {error ? (
             <p className="field-error" role="alert">
-              {error === "offline" ? text.feedback.offline : text.feedback.sendFailed}
+              <StableText
+                block
+                text={error === "offline" ? text.feedback.offline : text.feedback.sendFailed}
+                reserve={error === "offline" ? reserve.feedback.offline : reserve.feedback.sendFailed}
+              />
             </p>
           ) : null}
 
@@ -209,7 +235,10 @@ export function FeedbackForm({
               onClick={() => void send("incorrect", true)}
               disabled={isSending}
             >
-              {isSending ? text.feedback.sending : text.feedback.send}
+              <StableText
+                text={isSending ? text.feedback.sending : text.feedback.send}
+                reserve={isSending ? reserve.feedback.sending : reserve.feedback.send}
+              />
             </button>
             <button
               type="button"
@@ -220,7 +249,7 @@ export function FeedbackForm({
               }}
               disabled={isSending}
             >
-              {text.feedback.cancel}
+              <StableText text={text.feedback.cancel} reserve={reserve.feedback.cancel} />
             </button>
           </div>
         </div>
@@ -228,7 +257,11 @@ export function FeedbackForm({
 
       {mode === "idle" && error ? (
         <p className="field-error" role="alert">
-          {error === "offline" ? text.feedback.offline : text.feedback.sendFailed}
+          <StableText
+            block
+            text={error === "offline" ? text.feedback.offline : text.feedback.sendFailed}
+            reserve={error === "offline" ? reserve.feedback.offline : reserve.feedback.sendFailed}
+          />
         </p>
       ) : null}
     </div>

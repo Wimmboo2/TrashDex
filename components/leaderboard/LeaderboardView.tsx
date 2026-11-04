@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "@/components/i18n/LanguageProvider";
+import { StableText } from "@/components/i18n/StableText";
 import { ImpactSummary } from "@/components/insights/ImpactSummary";
 import { ConfusingList } from "@/components/leaderboard/ConfusingList";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
@@ -13,6 +14,7 @@ import {
 import { Icon } from "@/components/ui/Icon";
 import { formatJakartaTimestamp } from "@/lib/format";
 import { countLabel, fill } from "@/lib/i18n/messages";
+import type { Locale } from "@/lib/i18n/locale";
 import type { ConfusingItem, LeaderboardItem, Overview } from "@/lib/types";
 
 type PageError = "unconfigured" | "unavailable";
@@ -36,14 +38,22 @@ export function LeaderboardView({
   error,
   minFeedback,
 }: Props) {
-  const { locale, copy: text } = useI18n();
+  const { locale, copy: text, reserve } = useI18n();
+  const other: Locale = locale === "en" ? "id" : "en";
   const [view, setView] = useState<LeaderboardViewName>(initialView);
   const isConfusing = view === "confusing";
+  const feedbackTotal = overview?.feedbackCount ?? 0;
   const feedbackCount = countLabel(
     locale,
-    overview?.feedbackCount ?? 0,
+    feedbackTotal,
     text.insights.responseOne,
     text.insights.responseMany,
+  );
+  const feedbackCountReserve = countLabel(
+    other,
+    feedbackTotal,
+    reserve.insights.responseOne,
+    reserve.insights.responseMany,
   );
 
   function selectView(next: LeaderboardViewName) {
@@ -59,12 +69,38 @@ export function LeaderboardView({
   return (
     <main className="leaderboard-page">
       <div className="leaderboard-head">
-        <p className="kicker">{text.leaderboard.kicker}</p>
-        <h1>{isConfusing ? text.leaderboard.confusingTitle : text.leaderboard.scannedTitle}</h1>
-        <p>{isConfusing ? text.leaderboard.confusingIntro : text.leaderboard.scannedIntro}</p>
+        <p className="kicker">
+          <StableText block text={text.leaderboard.kicker} reserve={reserve.leaderboard.kicker} />
+        </p>
+        <h1>
+          <StableText
+            block
+            text={isConfusing ? text.leaderboard.confusingTitle : text.leaderboard.scannedTitle}
+            reserve={
+              isConfusing ? reserve.leaderboard.confusingTitle : reserve.leaderboard.scannedTitle
+            }
+          />
+        </h1>
+        <p>
+          <StableText
+            block
+            text={isConfusing ? text.leaderboard.confusingIntro : text.leaderboard.scannedIntro}
+            reserve={
+              isConfusing ? reserve.leaderboard.confusingIntro : reserve.leaderboard.scannedIntro
+            }
+          />
+        </p>
         {updatedAt ? (
           <p className="muted-small">
-            {fill(text.leaderboard.updated, { time: formatJakartaTimestamp(updatedAt, locale) })}
+            <StableText
+              block
+              text={fill(text.leaderboard.updated, {
+                time: formatJakartaTimestamp(updatedAt, locale),
+              })}
+              reserve={fill(reserve.leaderboard.updated, {
+                time: formatJakartaTimestamp(updatedAt, other),
+              })}
+            />
           </p>
         ) : null}
       </div>
@@ -74,6 +110,7 @@ export function LeaderboardView({
           overview={overview}
           minFeedback={minFeedback}
           detail={text.leaderboard.impactDetail}
+          detailReserve={reserve.leaderboard.impactDetail}
         />
       ) : null}
 
@@ -84,12 +121,30 @@ export function LeaderboardView({
           <div className="empty-icon">
             <Icon name="alert" size={26} />
           </div>
-          <h2>{text.leaderboard.unavailableTitle}</h2>
+          <h2>
+            <StableText
+              block
+              text={text.leaderboard.unavailableTitle}
+              reserve={reserve.leaderboard.unavailableTitle}
+            />
+          </h2>
           <p>
-            {error === "unconfigured" ? text.leaderboard.unconfigured : text.leaderboard.unavailable}
+            <StableText
+              block
+              text={
+                error === "unconfigured"
+                  ? text.leaderboard.unconfigured
+                  : text.leaderboard.unavailable
+              }
+              reserve={
+                error === "unconfigured"
+                  ? reserve.leaderboard.unconfigured
+                  : reserve.leaderboard.unavailable
+              }
+            />
           </p>
           <Link className="btn btn-secondary" href="/leaderboard">
-            {text.leaderboard.retry}
+            <StableText text={text.leaderboard.retry} reserve={reserve.leaderboard.retry} />
           </Link>
         </div>
       ) : isConfusing ? (
@@ -98,15 +153,28 @@ export function LeaderboardView({
             <div className="empty-icon">
               <Icon name="alert" size={26} />
             </div>
-            <h2>{text.leaderboard.notEnough}</h2>
+            <h2>
+              <StableText
+                block
+                text={text.leaderboard.notEnough}
+                reserve={reserve.leaderboard.notEnough}
+              />
+            </h2>
             <p>
-              {fill(text.leaderboard.notEnoughBody, {
-                min: minFeedback,
-                count: feedbackCount,
-              })}
+              <StableText
+                block
+                text={fill(text.leaderboard.notEnoughBody, {
+                  min: minFeedback,
+                  count: feedbackCount,
+                })}
+                reserve={fill(reserve.leaderboard.notEnoughBody, {
+                  min: minFeedback,
+                  count: feedbackCountReserve,
+                })}
+              />
             </p>
             <Link className="btn btn-primary" href="/">
-              {text.leaderboard.scan}
+              <StableText text={text.leaderboard.scan} reserve={reserve.leaderboard.scan} />
               <Icon name="arrow-right" size={17} />
             </Link>
           </div>
@@ -118,10 +186,18 @@ export function LeaderboardView({
           <div className="empty-icon">
             <Icon name="trash" size={26} />
           </div>
-          <h2>{text.leaderboard.noScans}</h2>
-          <p>{text.leaderboard.noScansBody}</p>
+          <h2>
+            <StableText block text={text.leaderboard.noScans} reserve={reserve.leaderboard.noScans} />
+          </h2>
+          <p>
+            <StableText
+              block
+              text={text.leaderboard.noScansBody}
+              reserve={reserve.leaderboard.noScansBody}
+            />
+          </p>
           <Link className="btn btn-primary" href="/">
-            {text.leaderboard.scan}
+            <StableText text={text.leaderboard.scan} reserve={reserve.leaderboard.scan} />
             <Icon name="arrow-right" size={17} />
           </Link>
         </div>
@@ -131,14 +207,20 @@ export function LeaderboardView({
 
       <div className="leaderboard-footer">
         <Link className="btn btn-secondary" href="/">
-          {text.leaderboard.back}
+          <StableText text={text.leaderboard.back} reserve={reserve.leaderboard.back} />
         </Link>
         <Link className="btn btn-secondary" href="/insights">
-          {text.leaderboard.insights}
+          <StableText text={text.leaderboard.insights} reserve={reserve.leaderboard.insights} />
           <Icon name="arrow-right" size={17} />
         </Link>
         <p className="muted-small">
-          {isConfusing ? text.leaderboard.confusingNote : text.leaderboard.scannedNote}
+          <StableText
+            block
+            text={isConfusing ? text.leaderboard.confusingNote : text.leaderboard.scannedNote}
+            reserve={
+              isConfusing ? reserve.leaderboard.confusingNote : reserve.leaderboard.scannedNote
+            }
+          />
         </p>
       </div>
     </main>
