@@ -1,11 +1,31 @@
 import type { Confidence, MaterialGroup, WasteStream } from "./taxonomy";
 
+export type DisposalContext = "school" | "neighborhood";
+
+export type LocalOption = {
+  id: "bank_sampah" | "tps3r" | "b3_dropoff";
+  title: string;
+  detail: string;
+};
+
+export type ScrapCollectorNote = {
+  /** How often informal scrap collectors (pengepul) buy this item. */
+  buys: "often" | "sometimes" | "rarely" | "do_not_sell";
+  note: string;
+};
+
 export type DisposalGuidance = {
   wasteStream: WasteStream;
   headline: string;
   steps: string[];
   warnings: string[];
+  /** Practical Indonesia routes. Acceptance still varies by place. */
+  localOptions: LocalOption[];
+  scrap: ScrapCollectorNote;
+  /** Always general. A school or neighborhood note is context, not a local rule. */
   scope: "general" | "local";
+  context: DisposalContext | null;
+  contextNote: string | null;
   sourceNote: string;
 };
 

@@ -778,6 +778,103 @@ img {
   font-size: 14px;
 }
 
+.context-picker {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+.context-picker legend {
+  margin-bottom: 2px;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.context-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.context-options label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.context-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.context-options label:has(input:checked) {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-deep);
+}
+
+.context-options label:has(input:focus-visible) {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.local-options,
+.scrap-note {
+  margin-top: 12px;
+}
+
+.local-options ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.local-options li,
+.scrap-note {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  font-size: 13px;
+}
+
+.local-option-title,
+.scrap-buys {
+  font-weight: 700;
+}
+
+.scrap-buys.is-do_not_sell,
+.scrap-buys.is-rarely {
+  color: var(--color-accent-deep);
+}
+
+.scrap-buys.is-often {
+  color: var(--color-sage-strong);
+}
+
+.context-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+
 .warning {
   display: flex;
   align-items: flex-start;

@@ -5,7 +5,13 @@ import { Dropzone } from "@/components/scanner/Dropzone";
 import { PreviewPanel } from "@/components/scanner/PreviewPanel";
 import { ResultCard } from "@/components/scanner/ResultCard";
 import { Icon } from "@/components/ui/Icon";
-import type { ApiErrorBody, NotWasteResult, ScanResultPayload, WasteResult } from "@/lib/types";
+import type {
+  ApiErrorBody,
+  DisposalContext,
+  NotWasteResult,
+  ScanResultPayload,
+  WasteResult,
+} from "@/lib/types";
 
 type Phase = "idle" | "preview" | "loading" | "cancelled" | "success" | "error";
 
@@ -39,6 +45,46 @@ async function compressImage(file: File): Promise<File> {
   return new File([blob], "trashdex-scan.jpg", { type: "image/jpeg" });
 }
 
+function ContextPicker({
+  value,
+  onChange,
+}: {
+  value: DisposalContext | null;
+  onChange: (value: DisposalContext | null) => void;
+}) {
+  const options: { value: DisposalContext | null; label: string }[] = [
+    { value: null, label: "General" },
+    { value: "school", label: "School" },
+    { value: "neighborhood", label: "Neighborhood" },
+  ];
+
+  return (
+    <fieldset className="context-picker">
+      <legend>Guidance context</legend>
+      <div className="context-options">
+        {options.map((option) => {
+          const id = `disposal-context-${option.value ?? "general"}`;
+          return (
+            <label key={id} htmlFor={id}>
+              <input
+                id={id}
+                type="radio"
+                name="disposal-context"
+                checked={value === option.value}
+                onChange={() => onChange(option.value)}
+              />
+              {option.label}
+            </label>
+          );
+        })}
+      </div>
+      <p className="muted-small">
+        Optional. Adds a school or neighborhood note. Steps stay general guidance for Indonesia.
+      </p>
+    </fieldset>
+  );
+}
+
 function ResultSkeleton() {
   return (
     <div className="result-card skeleton-card" aria-hidden="true">
@@ -61,6 +107,7 @@ export function ScanExperience() {
   const [scanId, setScanId] = useState<string | null>(null);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [disposalContext, setDisposalContext] = useState<DisposalContext | null>(null);
   const [slowScan, setSlowScan] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -152,6 +199,7 @@ export function ScanExperience() {
     try {
       const body = new FormData();
       body.append("image", file);
+      if (disposalContext) body.append("context", disposalContext);
 
       const response = await fetch("/api/scan", {
         method: "POST",
@@ -272,6 +320,10 @@ export function ScanExperience() {
         hidden
         onChange={handleInputChange}
       />
+
+      {phase === "idle" || phase === "preview" || phase === "cancelled" ? (
+        <ContextPicker value={disposalContext} onChange={setDisposalContext} />
+      ) : null}
 
       {phase === "idle" ? (
         <Dropzone

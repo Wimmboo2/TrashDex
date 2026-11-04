@@ -1,6 +1,6 @@
 import { classifyWasteImage } from "@/lib/ai/gemini";
 import { config } from "@/lib/config";
-import { getDisposalGuidance } from "@/lib/disposal/rules";
+import { getDisposalGuidance, parseDisposalContext } from "@/lib/disposal/rules";
 import { AppError, errorResponse } from "@/lib/errors";
 import { assertSameOrigin, getClientIp, getRequestId } from "@/lib/http";
 import { logError, logInfo } from "@/lib/logger";
@@ -169,7 +169,11 @@ export async function POST(request: Request) {
           : "The photo does not show the item clearly enough to be sure."
         : "");
 
-    const disposal = getDisposalGuidance(canonical.slug, classification.materialGroup);
+    const disposal = getDisposalGuidance(
+      canonical.slug,
+      classification.materialGroup,
+      parseDisposalContext(form.get("context")),
+    );
 
     let scanId: string | null = null;
     try {

@@ -16,7 +16,7 @@ TrashDex is a gamified waste scanner built for a school project in Indonesia. Up
 - Client-side compression before upload
 - Server-side file type, size, and magic-byte validation
 - Structured Gemini output validated with Zod
-- Deterministic disposal rules, separate from the AI
+- Deterministic Indonesia disposal rules, separate from the AI. Guidance names bank sampah, TPS 3R, B3 drop-offs, and scrap collectors without claiming a local regulation.
 - Confidence and uncertainty states, including a not-a-waste-item state
 - Anonymous feedback per scan, stored as unverified
 - Public leaderboard with a most-scanned view and a most-confusing view
