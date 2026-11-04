@@ -37,8 +37,21 @@ export function detectImageType(buffer: Buffer): DetectedImage | null {
   return null;
 }
 
+const MAX_EDGE = 8_000;
+const MAX_PIXELS = 16_000_000;
+
 function unreadableImage(): AppError {
   return new AppError("UNREADABLE_IMAGE", 400, "Can't read this image.");
+}
+
+function fileTooLarge(): AppError {
+  return new AppError("FILE_TOO_LARGE", 413, "That image is too large. Try a smaller photo.");
+}
+
+function assertSafeDimensions(width: number, height: number): void {
+  if (width > MAX_EDGE || height > MAX_EDGE || width * height > MAX_PIXELS) {
+    throw fileTooLarge();
+  }
 }
 
 function jpegIsReadable(buffer: Buffer): boolean {
@@ -73,6 +86,7 @@ function jpegIsReadable(buffer: Buffer): boolean {
       const height = buffer.readUInt16BE(offset + 3);
       const width = buffer.readUInt16BE(offset + 5);
       if (width === 0 || height === 0) return false;
+      assertSafeDimensions(width, height);
       sawFrame = true;
     }
 
@@ -127,6 +141,7 @@ function pngIsReadable(buffer: Buffer): boolean {
       const depth = buffer[dataStart + 8];
       const color = buffer[dataStart + 9];
       if (width === 0 || height === 0) return false;
+      assertSafeDimensions(width, height);
       if (depth !== 1 && depth !== 2 && depth !== 4 && depth !== 8 && depth !== 16) return false;
       if (color > 6 || color === 1 || color === 5) return false;
       sawHeader = true;
@@ -138,7 +153,8 @@ function pngIsReadable(buffer: Buffer): boolean {
     if (type === "IEND") {
       if (length !== 0 || imageData.length === 0) return false;
       try {
-        return inflateSync(Buffer.concat(imageData)).length > 0;
+        const inflated = inflateSync(Buffer.concat(imageData));
+        return inflated.length > 0 && inflated.length <= 40 * 1024 * 1024;
       } catch {
         return false;
       }
@@ -164,7 +180,15 @@ function webpIsReadable(buffer: Buffer): boolean {
     const size = buffer.readUInt32LE(offset + 4);
     const padded = size + (size & 1);
     if (offset + 8 + padded > buffer.length) return false;
-    if (tag === "VP8 " || tag === "VP8L" || tag === "VP8X") sawImage = true;
+    if (tag === "VP8X" && size >= 10) {
+      const data = offset + 8;
+      const width = 1 + buffer.readUIntLE(data + 4, 3);
+      const height = 1 + buffer.readUIntLE(data + 7, 3);
+      assertSafeDimensions(width, height);
+      sawImage = true;
+    } else if (tag === "VP8 " || tag === "VP8L") {
+      sawImage = true;
+    }
     offset += 8 + padded;
   }
 
@@ -181,30 +205,14 @@ export async function readValidatedImage(file: File): Promise<{
   buffer: Buffer;
   mimeType: DetectedImage["mimeType"];
 }> {
-  if (file.size > config.maxImageBytes) {
-    throw new AppError(
-      "FILE_TOO_LARGE",
-      413,
-      `That image is too large. Use an image under ${Math.round(config.maxImageBytes / 1024 / 1024)} MB.`,
-    );
-  }
+  if (file.size > config.maxImageBytes) throw fileTooLarge();
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  if (buffer.length > config.maxImageBytes) {
-    throw new AppError(
-      "FILE_TOO_LARGE",
-      413,
-      `That image is too large. Use an image under ${Math.round(config.maxImageBytes / 1024 / 1024)} MB.`,
-    );
-  }
+  if (buffer.length > config.maxImageBytes) throw fileTooLarge();
 
   const detected = detectImageType(buffer);
   if (!detected) {
-    throw new AppError(
-      "UNSUPPORTED_TYPE",
-      415,
-      "Use a JPEG, PNG, or WebP image. On iPhone, set Camera > Formats > Most Compatible if you see a HEIC error.",
-    );
+    throw new AppError("UNSUPPORTED_TYPE", 415, "Use a JPEG, PNG, or WebP image.");
   }
 
   if (!imageIsReadable(buffer, detected.mimeType)) throw unreadableImage();

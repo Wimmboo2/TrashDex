@@ -7,26 +7,28 @@ import {
 } from "@/lib/taxonomy";
 import { AppError } from "@/lib/errors";
 
-const canonicalItemSchema = z
-  .string()
-  .min(1)
-  .refine((value) => CANONICAL_ITEM_SLUG_SET.has(value), "Unknown canonical item");
+const shortText = z.string().trim().min(1).max(80);
+
+const canonicalItemSchema = shortText.refine(
+  (value) => CANONICAL_ITEM_SLUG_SET.has(value),
+  "Unknown canonical item",
+);
 
 export const AiClassificationSchema = z
   .object({
     isWasteItem: z.boolean(),
-    itemName: z.string().min(1).max(80),
+    itemName: shortText,
     canonicalItem: canonicalItemSchema,
-    material: z.string().min(1).max(80),
+    material: shortText,
     materialGroup: z.enum(MATERIAL_GROUPS),
     confidence: z.enum(CONFIDENCE_LEVELS),
-    uncertaintyReason: z.string().max(240),
+    uncertaintyReason: z.string().trim().max(240),
     multipleItems: z.boolean(),
     alternatives: z
       .array(
         z
           .object({
-            itemName: z.string().min(1).max(80),
+            itemName: shortText,
             canonicalItem: canonicalItemSchema,
             materialGroup: z.enum(MATERIAL_GROUPS),
           })
@@ -111,18 +113,21 @@ export function parseAiClassification(text: string): AiClassification {
     json = JSON.parse(text);
   } catch {
     throw new AppError(
-      "INVALID_AI_RESPONSE",
+      "MALFORMED_AI_RESPONSE",
       502,
-      "The scanner returned an unreadable result. Try again.",
+      "The scanner returned a result that could not be read. Try again.",
     );
   }
 
   const parsed = AiClassificationSchema.safeParse(json);
   if (!parsed.success) {
+    const unknownItem = parsed.error.issues.some((issue) => issue.message === "Unknown canonical item");
     throw new AppError(
-      "INVALID_AI_RESPONSE",
+      unknownItem ? "INVALID_AI_RESPONSE" : "MALFORMED_AI_RESPONSE",
       502,
-      "The scanner returned an unreadable result. Try again.",
+      unknownItem
+        ? "The scanner returned an unknown item type. Try again."
+        : "The scanner returned a result that could not be read. Try again.",
     );
   }
 
