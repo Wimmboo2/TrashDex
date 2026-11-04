@@ -26,6 +26,13 @@ const CONFIDENCE_LABELS = {
   low: "Low confidence",
 } as const;
 
+const SCRAP_LABELS = {
+  often: "Commonly bought",
+  sometimes: "Sometimes bought",
+  rarely: "Rarely bought",
+  do_not_sell: "Do not sell",
+} as const;
+
 export function ResultCard({
   result,
   scanId,
@@ -110,6 +117,29 @@ export function ResultCard({
             <li key={step}>{step}</li>
           ))}
         </ol>
+        {result.disposal.localOptions.length > 0 ? (
+          <div className="local-options">
+            <p className="mini-label">Places in Indonesia</p>
+            <ul>
+              {result.disposal.localOptions.map((option) => (
+                <li key={option.id}>
+                  <span className="local-option-title">{option.title}</span>
+                  <span>{option.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <div className="scrap-note">
+          <p className="mini-label">Scrap collectors</p>
+          <p className={`scrap-buys is-${result.disposal.scrap.buys}`}>
+            {SCRAP_LABELS[result.disposal.scrap.buys]}
+          </p>
+          <p>{result.disposal.scrap.note}</p>
+        </div>
+        {result.disposal.contextNote ? (
+          <p className="context-note">{result.disposal.contextNote}</p>
+        ) : null}
         {result.disposal.warnings.length > 0 ? (
           <div className="warning">
             <Icon name="alert" size={17} />

@@ -90,7 +90,7 @@ export default function HomePage() {
             <span className="feature-dot" aria-hidden="true" />
             <div>
               <h3>Disposal steps</h3>
-              <p>Short instructions with a general guidance note, not a fake local rule.</p>
+              <p>Indonesia steps for bank sampah, TPS 3R, and B3 drop-offs. Still check local rules.</p>
             </div>
           </div>
         </div>
