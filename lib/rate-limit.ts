@@ -38,7 +38,9 @@ export async function checkRateLimit(input: {
     );
 
     const count = rows[0]?.count ?? 1;
-    const retryAfter = input.windowSeconds;
+    const now = Math.floor(Date.now() / 1000);
+    const elapsed = now % input.windowSeconds;
+    const retryAfter = elapsed === 0 ? input.windowSeconds : input.windowSeconds - elapsed;
 
     if (Math.random() < 0.02) {
       void cleanupOldWindows();

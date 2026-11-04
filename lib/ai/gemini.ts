@@ -217,10 +217,10 @@ export async function classifyWasteImage(
       signal ? { signal: classificationSignal(signal) } : undefined,
     );
 
-    const text = interaction.output_text;
+    const text = interaction.output_text?.trim() ?? "";
     if (!text) {
       throw new AppError(
-        "INVALID_AI_RESPONSE",
+        "EMPTY_AI_RESPONSE",
         502,
         "The scanner returned an empty result. Try again.",
       );
@@ -257,11 +257,7 @@ export async function classifyWasteImage(
     }
 
     if (status === 400 || status === 404) {
-      throw new AppError(
-        "INVALID_AI_RESPONSE",
-        502,
-        "The scanner could not read that image. Try another photo.",
-      );
+      throw new AppError("UNREADABLE_IMAGE", 400, "Can't read this image.");
     }
 
     if (status && status >= 500) {

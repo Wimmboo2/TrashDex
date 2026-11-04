@@ -52,12 +52,26 @@ export async function POST(request: Request) {
 
     const contentLength = Number(request.headers.get("content-length") || "0");
     if (contentLength > config.maxImageBytes + 1024 * 1024) {
+      throw new AppError("FILE_TOO_LARGE", 413, "That image is too large. Try a smaller photo.");
+    }
+
+    let form: FormData;
+    try {
+      form = await request.formData();
+    } catch {
       throw new AppError(
-        "FILE_TOO_LARGE",
-        413,
-        `That image is too large. Use an image under ${Math.round(config.maxImageBytes / 1024 / 1024)} MB.`,
+        "MALFORMED_REQUEST",
+        400,
+        "The upload was incomplete. Choose an image and try again.",
       );
     }
+
+    const file = form.get("image");
+    if (!(file instanceof File) || file.size === 0) {
+      throw new AppError("INVALID_REQUEST", 400, "Choose an image before scanning.");
+    }
+
+    const image = await readValidatedImage(file);
 
     const ipHash = hashIp(getClientIp(request.headers));
     const [minuteLimit, dayLimit, globalLimit] = await Promise.all([
@@ -83,24 +97,13 @@ export async function POST(request: Request) {
       throw new AppError(
         "RATE_LIMITED",
         429,
-        "Too many scans right now. Try again shortly.",
+        blocked.retryAfter > 120
+          ? "The daily scan limit has been reached. Try again tomorrow."
+          : "Too many scans in a short time. Wait a minute and try again.",
         blocked.retryAfter,
       );
     }
 
-    let form: FormData;
-    try {
-      form = await request.formData();
-    } catch {
-      throw new AppError("INVALID_REQUEST", 400, "Send the image as multipart form data.");
-    }
-
-    const file = form.get("image");
-    if (!(file instanceof File) || file.size === 0) {
-      throw new AppError("INVALID_REQUEST", 400, "Choose an image before scanning.");
-    }
-
-    const image = await readValidatedImage(file);
     const classification = await classifyWasteImage(image, request.signal);
 
     if (classification.multipleItems) {
