@@ -14,7 +14,8 @@ status() {
 }
 
 # A tiny valid PNG, generated locally so no fixture binary is required.
-printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nWQAAAAASUVORK5CYII=' | base64 -d > "$TMP/tiny.png"
+printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC' | base64 -d > "$TMP/tiny.png"
+printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nWQAAAAASUVORK5CYII=' | base64 -d > "$TMP/corrupt.png"
 printf 'not an image' > "$TMP/not-an-image.txt"
 dd if=/dev/zero of="$TMP/too-large.jpg" bs=1M count=5 status=none
 
@@ -66,6 +67,11 @@ pass "invalid file type rejected"
 code=$(status -X POST -F "image=@$TMP/too-large.jpg;type=image/jpeg" "$BASE/api/scan")
 [ "$code" = "413" ] || fail "oversized file returned $code"
 pass "oversized file rejected"
+
+code=$(status -X POST -F "image=@$TMP/corrupt.png;type=image/png" "$BASE/api/scan")
+[ "$code" = "400" ] || fail "corrupt image returned $code"
+grep -q "Can't read this image" "$TMP/body.json" || fail "corrupt image message"
+pass "corrupt image rejected"
 
 code=$(status -X POST -F "image=@$TMP/tiny.png;type=image/png" "$BASE/api/scan")
 [ "$code" = "200" ] || fail "valid scan returned $code"

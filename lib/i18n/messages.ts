@@ -94,6 +94,7 @@ const en = {
   errors: {
     FILE_TOO_LARGE: "That image is too large. Use an image under 12 MB.",
     UNSUPPORTED_TYPE: "Use a JPEG, PNG, or WebP image.",
+    UNREADABLE_IMAGE: "Can't read this image.",
     RATE_LIMITED: "Too many scans right now. Try again shortly.",
     UPSTREAM_QUOTA: "The scanner is busy right now. Try again in a little while.",
     UPSTREAM_TIMEOUT: "The scan took too long. Try a smaller or clearer photo.",
@@ -363,6 +364,7 @@ const id = {
   errors: {
     FILE_TOO_LARGE: "Gambar itu terlalu besar. Gunakan gambar di bawah 12 MB.",
     UNSUPPORTED_TYPE: "Gunakan gambar JPEG, PNG, atau WebP.",
+    UNREADABLE_IMAGE: "Gambar ini tidak bisa dibaca.",
     RATE_LIMITED: "Terlalu banyak pindaian saat ini. Coba lagi sebentar lagi.",
     UPSTREAM_QUOTA: "Pemindai sedang sibuk. Coba lagi beberapa saat lagi.",
     UPSTREAM_TIMEOUT: "Pemindaian terlalu lama. Coba foto yang lebih kecil atau lebih jelas.",
