@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { localeCookie, type Locale } from "@/lib/i18n/locale";
 import { copy, type Copy } from "@/lib/i18n/messages";
-import type { Locale } from "@/lib/i18n/locale";
 
 type LanguageValue = {
   locale: Locale;
@@ -14,12 +14,23 @@ type LanguageValue = {
 
 const LanguageContext = createContext<LanguageValue | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("en");
+export function LanguageProvider({
+  initialLocale,
+  children,
+}: {
+  initialLocale: Locale;
+  children: React.ReactNode;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
+
+  const setLocale = useCallback((next: Locale) => {
+    setLocaleState(next);
+    document.cookie = localeCookie(next, window.location.protocol === "https:");
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -28,7 +39,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       copy: copy[locale],
       reserve: locale === "en" ? copy.id : copy.en,
     }),
-    [locale],
+    [locale, setLocale],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
