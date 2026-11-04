@@ -91,10 +91,22 @@ function ContextPicker({
   );
 }
 
-function messageForCode(code: string, text: Copy): string {
+function messageForCode(code: string, text: Copy, retryAfter?: number): string {
   if (code === "NETWORK") return text.scanner.network;
+  if (code === "RATE_LIMITED" && retryAfter && retryAfter > 120) return text.errors.RATE_LIMITED_DAY;
   if (code in text.errors) return text.errors[code as keyof Copy["errors"]];
   return text.scanner.fallback;
+}
+
+function codeFromStatus(status: number): string {
+  if (status === 413) return "FILE_TOO_LARGE";
+  if (status === 415) return "UNSUPPORTED_TYPE";
+  if (status === 429) return "RATE_LIMITED";
+  if (status === 408 || status === 504) return "UPSTREAM_TIMEOUT";
+  if (status === 503) return "UPSTREAM_UNAVAILABLE";
+  if (status === 502) return "MALFORMED_AI_RESPONSE";
+  if (status === 400) return "INVALID_REQUEST";
+  return "INTERNAL";
 }
 
 function ResultSkeleton() {
@@ -118,7 +130,7 @@ export function ScanExperience() {
   const [result, setResult] = useState<WasteResult | null>(null);
   const [notWaste, setNotWaste] = useState<NotWasteResult | null>(null);
   const [scanId, setScanId] = useState<string | null>(null);
-  const [error, setError] = useState<{ code: string; message: string } | null>(null);
+  const [error, setError] = useState<{ code: string; retryAfter?: number } | null>(null);
   const [fileError, setFileError] = useState<"heic" | "type" | "large" | "unreadable" | null>(null);
   const [disposalContext, setDisposalContext] = useState<DisposalContext | null>(null);
   const [slowScan, setSlowScan] = useState(false);
@@ -226,14 +238,19 @@ export function ScanExperience() {
       if (requestId !== requestIdRef.current) return;
 
       if (!response.ok) {
-        const code = data && "error" in data && data.error?.code ? data.error.code : "INTERNAL";
-        setError({ code, message: messageForCode(code, text) });
+        const code =
+          data && "error" in data && data.error?.code ? data.error.code : codeFromStatus(response.status);
+        const retryHeader = Number(response.headers.get("retry-after") || "");
+        setError({
+          code,
+          retryAfter: Number.isFinite(retryHeader) && retryHeader > 0 ? retryHeader : undefined,
+        });
         setPhase("error");
         return;
       }
 
-      if (!data || !("result" in data)) {
-        setError({ code: "INTERNAL", message: text.scanner.emptyResult });
+      if (!data || !("result" in data) || !data.result) {
+        setError({ code: "EMPTY_AI_RESPONSE" });
         setPhase("error");
         return;
       }
@@ -258,15 +275,9 @@ export function ScanExperience() {
       }
 
       if (caught instanceof DOMException && caught.name === "AbortError") {
-        setError({
-          code: "UPSTREAM_TIMEOUT",
-          message: text.scanner.timeout,
-        });
+        setError({ code: "UPSTREAM_TIMEOUT" });
       } else {
-        setError({
-          code: "NETWORK",
-          message: text.scanner.network,
-        });
+        setError({ code: "NETWORK" });
       }
       setPhase("error");
     } finally {
@@ -314,8 +325,8 @@ export function ScanExperience() {
   const visibleError = error
     ? {
         code: error.code,
-        message: messageForCode(error.code, text),
-        reserve: messageForCode(error.code, reserve),
+        message: messageForCode(error.code, text, error.retryAfter),
+        reserve: messageForCode(error.code, reserve, error.retryAfter),
       }
     : null;
   const fileErrorText =
