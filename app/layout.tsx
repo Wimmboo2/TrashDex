@@ -17,10 +17,33 @@ const figtree = Figtree({
   display: "swap",
 });
 
+const siteUrl = "https://trashdex.vercel.app";
+const siteDescription =
+  "Photograph one waste item and get the material, waste stream, and Indonesia disposal guidance. Built to reduce wrong sorting and contamination.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "TrashDex - Scan it. Sort it.",
-  description:
-    "Photograph a waste item. TrashDex identifies the material, sorts the stream, and shows you how to dispose of it.",
+  description: siteDescription,
+  applicationName: "TrashDex",
+  openGraph: {
+    title: "TrashDex - Scan it. Sort it.",
+    description: siteDescription,
+    url: siteUrl,
+    siteName: "TrashDex",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TrashDex - Scan it. Sort it.",
+    description: siteDescription,
+  },
+  appleWebApp: {
+    capable: true,
+    title: "TrashDex",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {
