@@ -536,6 +536,13 @@ img {
   font-weight: 700;
 }
 
+.slow-note {
+  margin: 6px 0 0;
+  color: var(--color-accent-deep);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .preview-actions {
   display: flex;
   flex-wrap: wrap;
@@ -803,6 +810,34 @@ img {
   color: var(--color-sage-strong);
   font-size: 14px;
   font-weight: 600;
+}
+
+.feedback-recorded {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-sage-line);
+  border-radius: 16px;
+  background: var(--color-sage-soft);
+}
+
+.feedback-recorded-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-sage-strong);
+}
+
+.feedback-recorded p {
+  margin: 0;
+  color: var(--color-sage-strong);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .result-actions {

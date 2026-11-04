@@ -45,7 +45,7 @@ const GROUP_RULES: Record<MaterialGroup, RuleBody> = {
       "Rinse and dry the item.",
       "Keep sharp edges away from the opening.",
     ],
-    warnings: ["Aerosol cans may be hazardous if they are not fully empty."],
+    warnings: [],
   },
   paper: {
     headline: "Keep paper clean and dry",
@@ -277,21 +277,124 @@ const ITEM_OVERRIDES: Record<string, Partial<RuleBody>> = {
   },
 };
 
+const MATERIAL_STREAM: Record<MaterialGroup, WasteStream> = {
+  plastic: "recycling",
+  glass: "recycling",
+  metal: "recycling",
+  paper: "recycling",
+  organic: "organic",
+  textile: "textile",
+  electronic: "electronic",
+  hazardous: "hazardous",
+  rubber: "special_dropoff",
+  wood: "special_dropoff",
+  ceramic: "landfill",
+  composite: "unknown",
+  other: "unknown",
+};
+
+const STREAM_RULES: Record<WasteStream, RuleBody> = {
+  recycling: {
+    headline: "Empty it and place it in recycling",
+    steps: [
+      "Empty the item.",
+      "Rinse and dry it.",
+      "Place it in the recycling bin.",
+    ],
+    warnings: [],
+  },
+  organic: {
+    headline: "Keep organic waste separate",
+    steps: [
+      "Remove packaging.",
+      "Drain excess liquid.",
+      "Place it in the organic bin if your school has one.",
+    ],
+    warnings: ["Some compost systems do not accept meat or dairy."],
+  },
+  hazardous: {
+    headline: "Handle hazardous waste separately",
+    steps: [
+      "Do not place it in household bins.",
+      "Keep it away from children and pets.",
+      "Take it to a hazardous waste drop-off.",
+    ],
+    warnings: ["Never puncture, crush, or burn hazardous items."],
+  },
+  electronic: {
+    headline: "Take e-waste to a collection point",
+    steps: [
+      "Do not place it in household bins.",
+      "Remove personal data from devices.",
+      "Take it to an e-waste drop-off.",
+    ],
+    warnings: [],
+  },
+  textile: {
+    headline: "Reuse first, then use a textile drop-off",
+    steps: [
+      "Check if the item can be donated or repaired.",
+      "Wash and dry it.",
+      "Use a textile collection point if one is available.",
+    ],
+    warnings: ["Wet or moldy textiles usually cannot be recycled."],
+  },
+  landfill: {
+    headline: "Put this in residual waste",
+    steps: [
+      "Empty leftover food or liquid.",
+      "Keep it out of the recycling bin.",
+      "Place it in residual waste.",
+    ],
+    warnings: [],
+  },
+  special_dropoff: {
+    headline: "Take this to a special drop-off",
+    steps: [
+      "Keep it out of household bins.",
+      "Ask your school or local waste service where to take it.",
+    ],
+    warnings: [],
+  },
+  unknown: {
+    headline: "Check local rules before you sort this",
+    steps: [
+      "Look for a recycling or drop-off label.",
+      "Ask your school or local waste service.",
+      "Do not put it in recycling unless you are told it belongs there.",
+    ],
+    warnings: ["When in doubt, do not put it in recycling."],
+  },
+};
+
+function streamForMaterial(materialGroup: MaterialGroup): WasteStream {
+  return MATERIAL_STREAM[materialGroup] ?? "unknown";
+}
+
+function warningsForItem(canonicalItem: string, warnings: string[]): string[] {
+  return warnings.filter(
+    (warning) => canonicalItem === "aerosol-can" || !/aerosol/i.test(warning),
+  );
+}
+
 export function getDisposalGuidance(
   canonicalItem: string,
   materialGroup: MaterialGroup,
 ): DisposalGuidance {
   const item = getCanonicalItem(canonicalItem);
   const groupRule = GROUP_RULES[materialGroup] ?? GROUP_RULES.other;
-  const override = ITEM_OVERRIDES[canonicalItem] ?? {};
+  const override = ITEM_OVERRIDES[canonicalItem];
   const wasteStream =
-    override.wasteStream ?? item?.defaultWasteStream ?? groupRule.wasteStream ?? "unknown";
+    override?.wasteStream ?? item?.defaultWasteStream ?? streamForMaterial(materialGroup);
+
+  const materialAgrees = streamForMaterial(materialGroup) === wasteStream;
+  const aligned = materialAgrees ? groupRule : STREAM_RULES[wasteStream];
 
   return {
     wasteStream,
-    headline: override.headline ?? groupRule.headline,
-    steps: override.steps ?? groupRule.steps,
-    warnings: override.warnings ?? groupRule.warnings,
+    headline: override?.headline ?? aligned.headline,
+    steps: override?.steps ?? aligned.steps,
+    warnings: warningsForItem(canonicalItem, override?.warnings ?? aligned.warnings),
     scope: "general",
     sourceNote: SOURCE_NOTE,
   };

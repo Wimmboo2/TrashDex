@@ -5,6 +5,8 @@ import { Icon } from "@/components/ui/Icon";
 export function PreviewPanel({
   previewUrl,
   isLoading,
+  slow = false,
+  cancelled = false,
   onAnalyze,
   onReplace,
   onRemove,
@@ -12,11 +14,20 @@ export function PreviewPanel({
 }: {
   previewUrl: string;
   isLoading: boolean;
+  slow?: boolean;
+  cancelled?: boolean;
   onAnalyze: () => void;
   onReplace: () => void;
   onRemove: () => void;
   onCancel: () => void;
 }) {
+  const status = isLoading ? "Reading the item..." : cancelled ? "Scan cancelled" : "Ready to scan";
+  const detail = isLoading
+    ? "Identifying material and waste stream."
+    : cancelled
+      ? "Nothing was saved. You can analyze this photo again."
+      : "The photo is sent for analysis and is not stored by TrashDex.";
+
   return (
     <div>
       <div className={`preview-frame${isLoading ? " is-loading" : ""}`}>
@@ -27,14 +38,15 @@ export function PreviewPanel({
 
       <div className="preview-meta">
         <div>
-          <p className="preview-status">
-            {isLoading ? "Reading the item..." : "Ready to scan"}
+          <p className="preview-status" role={cancelled ? "status" : undefined}>
+            {status}
           </p>
-          <p className="muted-small">
-            {isLoading
-              ? "Identifying material and waste stream."
-              : "The photo is sent for analysis and is not stored by TrashDex."}
-          </p>
+          <p className="muted-small">{detail}</p>
+          {isLoading && slow ? (
+            <p className="slow-note" role="status">
+              Still working…
+            </p>
+          ) : null}
         </div>
         {isLoading ? (
           <button type="button" className="btn btn-secondary" onClick={onCancel}>
