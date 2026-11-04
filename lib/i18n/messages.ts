@@ -230,7 +230,7 @@ const en = {
     diversionEmpty: "No scans yet, so there is nothing to estimate.",
     diversionNote: "of {count} in a sortable stream.",
     diversionMethod:
-      "Counts scans classified as recycling, organic, textile, e-waste, or a special drop-off. Residual, hazardous, and unknown results are left out. One scan counts as one item. This is not weighed waste, and it does not mean the item was sorted.",
+      "Counts scans classified as recycling, organic, textile, e-waste, or a special drop-off. Residual, hazardous, and unknown results are left out, and so are scans marked incorrect. One scan counts as one item. This is not weighed waste, and it does not mean the item was sorted.",
     windowCaption: "{count} in the last {range} days, Asia/Jakarta",
     busiest: "Busiest day {date}, {count}",
     noWindow: "No scans recorded in this window",
@@ -500,7 +500,7 @@ const id = {
     diversionEmpty: "Belum ada pindaian, jadi tidak ada yang bisa diperkirakan.",
     diversionNote: "dari {count} pada alur yang bisa dipilah.",
     diversionMethod:
-      "Menghitung pindaian yang diklasifikasikan sebagai daur ulang, organik, tekstil, limbah elektronik, atau pengumpulan khusus. Hasil residu, limbah B3, dan yang belum jelas tidak dihitung. Satu pindaian dihitung sebagai satu barang. Ini bukan sampah yang ditimbang, dan tidak berarti barang itu sudah dipilah.",
+      "Menghitung pindaian yang diklasifikasikan sebagai daur ulang, organik, tekstil, limbah elektronik, atau pengumpulan khusus. Hasil residu, limbah B3, dan yang belum jelas tidak dihitung, begitu juga pindaian yang ditandai salah. Satu pindaian dihitung sebagai satu barang. Ini bukan sampah yang ditimbang, dan tidak berarti barang itu sudah dipilah.",
     windowCaption: "{count} dalam {range} hari terakhir, Asia/Jakarta",
     busiest: "Hari tersibuk {date}, {count}",
     noWindow: "Tidak ada pindaian pada rentang ini",
