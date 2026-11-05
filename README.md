@@ -166,7 +166,3 @@ The optional visual scripts in `tests/` use Playwright. They are not installed b
 - Rate limiting stores an HMAC-SHA256 hash of the client IP, truncated to 32 hex characters. The raw IP is not stored.
 - The only cookie is the language preference.
 - There are no tracking scripts.
-
-## Deployment
-
-The live app is at [https://trashdex.vercel.app](https://trashdex.vercel.app). Set `GEMINI_API_KEY`, `DATABASE_URL`, `RATE_LIMIT_SECRET`, and `APP_ORIGIN` in the deployment environment, and run `db/schema.sql` against the database before the first scan.
