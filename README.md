@@ -1,115 +1,135 @@
 # TrashDex
 
+TrashDex identifies one waste item from a photo and returns its item type, material, waste stream, and disposal steps for Indonesia. It does not require an account and does not store the photo.
+
 Live app: [https://trashdex.vercel.app](https://trashdex.vercel.app)
 
-TrashDex helps people in Indonesia sort one waste item at a time. A photo comes back as an item, a material, a waste stream, and practical disposal steps.
+## Why it was built
 
-## Problem
+TrashDex is a school project about household waste sorting in Indonesia. This repository is also the build used for the hackathon submission.
 
-Wrong sorting contaminates everything around it. A battery in a household sack, a food-stained box in a paper bundle, or a mixed photo guessed as one confident item sends recoverable material the wrong way. In Indonesia the useful next step is often a bank sampah, a TPS 3R, a scrap collector, or a B3 drop-off, and those options are easy to mix up.
+The problem is that "plastic" is not one disposal instruction. A bottle, a sachet, and a cup can go to different places, and the useful routes are split between waste banks (bank sampah), 3R facilities (TPS 3R), scrap collectors (pengepul), and hazardous-waste drop-offs (B3). A wrong guess contaminates the material around it.
+
+The app is built around one item at a time. When the photo is unclear, it says so instead of forcing a confident answer.
+
+## What it does
+
+### Scanner
+
+- Take a photo on a mobile browser or upload a JPEG, PNG, or WebP. Desktop drag and drop works too.
+- The browser resizes the image to at most 1600 px on the long edge and re-encodes it as JPEG at quality 0.82 before upload. The file picker accepts up to 12 MB; the server's default limit is 4 MB.
+- The server checks the file size, detects the real type from the bytes, parses the JPEG, PNG, or WebP structure, and rejects images that exceed its size or dimension limits.
+- Google Gemini classifies the main item into one of 37 fixed item types and 13 material groups, with a high, medium, or low confidence label and up to two alternatives.
+- Photos with more than one item, and photos with no clear waste item, are rejected with a specific message. Neither is saved.
+- A separate rules engine maps the item and material group to one of 8 waste streams. It returns the stream, disposal steps, warnings, local options (waste bank, 3R facility, B3 drop-off), a scrap-collector note, and a source note.
+- An optional School or Neighborhood context adds a short note to the result. It does not change the steps or claim to know local rules.
+- After a saved scan, the user can mark the result correct or incorrect. An incorrect result can include a correction: item name, item type, material group, and stream. Only one response is accepted per scan.
+- The interface switches between English and Indonesian. The choice is stored in a cookie.
+
+### Public pages
+
+- `/leaderboard` shows all-time most-scanned items and all-time most-confusing items. The confusing view ranks items with at least 5 feedback responses by the share marked incorrect.
+- `/insights` shows an all-time summary, a 7-day or 30-day scan chart in Asia/Jakarta, the material mix for that range, the top items in that range, and the all-time confusing-item list. The page states how the numbers are calculated.
+- `/slides` is a five-slide pitch deck. It is marked `noindex`.
+- The app includes a web app manifest, an SVG icon, and Open Graph/Twitter metadata.
 
 ## How it works
 
-1. Photograph one item, or upload a JPEG, PNG, or WebP.
-2. Google Gemini returns a structured guess: item, material, confidence, and whether the photo shows more than one item. The model does not write disposal advice.
-3. A fixed rules engine maps that item to a waste stream and to Indonesia guidance: steps, bank sampah, TPS 3R, B3 drop-off, and whether scrap collectors commonly buy it.
-4. The person can mark the result right or wrong. Feedback is anonymous and stored as unverified.
-5. The leaderboard and insights pages aggregate those rows in SQL. The browser never totals a downloaded scan list.
-
-## Impact, and how success would be measured
-
-The point is fewer confidently wrong sorts, and a public view of what people are scanning.
-
-Success shows up as:
-
-- More items scanned, counted as stored scans.
-- Reported correctness, shown only after at least 5 feedback responses. The rate is correct responses divided by all feedback, not by scans.
-- Confusing-item rankings, shown only for an item with at least 5 feedback responses of its own.
-- A rough diversion estimate: scans classified as recycling, organic, textile, e-waste, or a special drop-off, out of all scans. Residual, hazardous, and unknown results are left out. One scan counts as one item. This is not weighed waste, and it does not mean the item was sorted.
-
-The insights page states that method next to the number.
-
-## Main flow
-
-Open the scanner, take or upload a photo of one item, and read the result. A clear photo shows the item, material, confidence, stream, disposal steps, places in Indonesia, and a scrap-collector note. The page says the guidance is for Indonesia and that local rules still apply. Mark the result right or wrong, then open the leaderboard for all-time rankings or Insights for the all-time summary and the 7-day or 30-day chart.
-
-## Limitations
-
-- Disposal text is general guidance for Indonesia. It is not a city regulation, a school policy, or a promise that a nearby bank sampah or TPS 3R accepts the item.
-- The model can be wrong. Confidence is a qualitative label, not a measured probability. Multi-item photos are rejected instead of guessed.
-- Photos are sent to Google Gemini and are not stored by TrashDex. On the Gemini free tier, Google may use content to improve its products.
-- There are no accounts. Feedback is one response per scan, and a correction does not rewrite scan history.
-- Reported correctness and confusing rankings stay hidden until the feedback threshold. A handful of responses is not treated as a rate.
-- The diversion figure is a classification count. It is not kilograms, and it is not evidence of behavior change.
-- Rankings and the impact summary are all time. The activity chart is only the last 7 or 30 days in Asia/Jakarta, so those totals can differ.
-
-## Stack
+### Stack
 
 - Next.js 16 App Router, React 19, TypeScript
-- Tailwind-free CSS based on the Organic design system (cream, terracotta, sage, Caprasimo, Figtree)
-- Google Gemini 3.5 Flash-Lite through the Interactions API
-- Neon Postgres for scans, feedback, and the public leaderboard
-- Zod validation for API and AI responses
+- Plain CSS, with Caprasimo and Figtree loaded through `next/font/google`
+- Postgres through `pg` (the provided environment file points to Neon)
+- Google Gemini through `@google/genai`, using the Interactions API with `store: false` and a JSON response schema. The default model is `gemini-3.5-flash-lite`.
+- Zod for API and AI response validation
 
-## Features
+The model is only asked to identify the item and material. Disposal text always comes from the rules engine, so a model response cannot introduce its own disposal advice.
 
-- Image upload and native mobile camera capture
-- Client-side compression before upload
-- Server-side file type, size, and magic-byte validation
-- Structured Gemini output validated with Zod
-- Deterministic Indonesia disposal rules, separate from the AI
-- Confidence and uncertainty states, including a not-a-waste-item state and a multi-item state
-- Anonymous feedback per scan, stored as unverified
-- Public leaderboard with a most-scanned view and a most-confusing view
-- Insights dashboard with an all-time impact summary, a dated activity chart, material mix, and reported correctness
-- Web app manifest and social preview tags
-- Per-IP rate limits stored in Postgres
-- No accounts, no image storage, no tracking scripts
+### Request flow
 
-## Environment
+1. The browser compresses the selected image and sends it as `multipart/form-data` to `POST /api/scan`, with an optional `context` field.
+2. The route checks the request origin when `APP_ORIGIN` is set, rejects oversized uploads, validates the image, hashes the client IP, and checks the per-minute, per-day, and global daily scan limits in Postgres.
+3. `classifyWasteImage` sends the image and a fixed system prompt to Gemini. The Gemini call times out at 30 seconds, and the browser aborts at 45 seconds.
+4. The returned JSON is parsed with Zod. The canonical item must be one of the 37 known types. Malformed JSON or an unknown type returns a 502 error.
+5. Multi-item and non-waste results return `scanId: null` and are not written to the database.
+6. For a valid item, the route caps `high` confidence to `medium` when the model reports uncertainty or an alternative, then calls the rules engine.
+7. `saveScan` inserts the item, material, material group, waste stream, confidence, and timestamp into `scans`. The image is not inserted.
+8. If `saveScan` fails, the response still returns the result with `scanId: null`, and the failure is logged. Feedback is unavailable for that scan.
+9. Feedback is posted to `/api/feedback` and stored in `scan_feedback`. A unique constraint on `scan_id` makes duplicate feedback return 409.
+10. The leaderboard and insights pages run SQL aggregates on the server. The browser does not receive a full scan list to total.
 
-Copy `.env.example` to `.env.local` and fill in:
+### Database
 
-- `GEMINI_API_KEY` for real classification
-- `DATABASE_URL` for Neon Postgres
-- `RATE_LIMIT_SECRET` with a random 32+ byte value
-- `APP_ORIGIN` with the deployed origin
+`db/schema.sql` creates four tables:
 
-`MOCK_AI` is for local or sandbox UI testing only. Never enable it in production. Supported values: `true` (success result), `not-waste`, `low` (low-confidence composite), `uncertain`, `multiple`, and `error` (upstream failure).
+- `canonical_items`: the 37 fixed item types and their default streams.
+- `scans`: one row per saved scan, with no image data.
+- `scan_feedback`: one row per scan, with an optional correction and a `review_status` that defaults to `pending`.
+- `rate_limits`: counters keyed by a hashed IP or the global key.
 
-## Database
+The script seeds the 37 item types and is safe to run again (`create table if not exists` and an upsert on `canonical_items`).
 
-Apply `db/schema.sql` to the Neon database. It creates the tables and seeds the 37 canonical item types.
+### API
 
-## Metrics and what they mean
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/scan` | Classify one image and save the scan when a waste item is found. |
+| `POST` | `/api/feedback` | Save one correct or incorrect response for a scan. |
+| `GET` | `/api/leaderboard?view=scanned\|confusing&limit=1..50` | Return ranked items. The default view is `scanned`; the default limit is 20. |
+| `GET` | `/api/insights?range=7\|30` | Return the summary, chart, material mix, and rankings. The default range is 7. |
 
-All aggregation happens in SQL on the server. Nothing is calculated in the browser from a full scan list.
+## Run it
 
-| Metric | Definition |
-| --- | --- |
-| Items scanned | Every row in `scans`. All time. |
-| Item types | Distinct `canonical_item` values in `scans`. All time. |
-| Feedback responses | Every row in `scan_feedback`. |
-| Reported correctness | Correct feedback divided by all feedback. Hidden until there are at least `MIN_FEEDBACK_RESPONSES` (5) responses. The denominator is feedback, not scans. |
-| Reported confusion | Feedback marked incorrect, out of all feedback for that item. |
-| Confusing ranking | Items with at least 5 feedback responses, ranked by reported confusion. |
-| Rough diversion | Scans whose stream is recycling, organic, textile, e-waste, or special drop-off. Residual, hazardous, and unknown are excluded. |
-| Scan activity | Scans per calendar day in `Asia/Jakarta` for the last 7 or 30 days, including days with no scans. This window can be smaller than the all-time total. |
-| Material mix | Share of scans per material group inside the selected date range. |
-
-Reported confusion is not a confirmed error rate. Corrections are stored as unverified feedback.
-
-## API
-
-- `POST /api/scan` classifies one image and stores the scan.
-- `POST /api/feedback` stores one feedback response per scan.
-- `GET /api/leaderboard?view=scanned|confusing&limit=20`
-- `GET /api/insights?range=7|30`
-
-## Commands
+### 1. Install
 
 ```bash
 npm install
+```
+
+### 2. Configure
+
+```bash
+cp .env.example .env.local
+```
+
+On Windows, use `copy .env.example .env.local`.
+
+| Variable | Required | What it does |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Yes for real scans | Server-side key for classification. Without it, `/api/scan` returns 503. |
+| `GEMINI_MODEL` | No | Model name. Defaults to `gemini-3.5-flash-lite`. |
+| `DATABASE_URL` | Yes for saving and public pages | Postgres connection string. Without it, classification still runs but `scanId` is null; the leaderboard and insights APIs return 503, and the pages show an unavailable state. Use the pooled Neon string in production. |
+| `RATE_LIMIT_SECRET` | Yes in production | HMAC key used to hash client IPs. If unset, the code falls back to `trashdex-dev-only-secret`. |
+| `APP_ORIGIN` | No | If set, POST requests with a different `Origin` header are rejected. If blank, the check is skipped. |
+| `MOCK_AI` | No, test only | `false` or empty turns it off. `true` returns a fixed plastic-bottle result. `not-waste`, `low`, `uncertain`, `multiple`, and `error` exercise the other states. Any other non-empty value behaves like `true`. Never enable it in production. |
+| `MAX_IMAGE_BYTES` | No | Server upload limit. Defaults to `4194304`. |
+| `SCAN_LIMIT_PER_MINUTE` | No | Defaults to 10. |
+| `SCAN_LIMIT_PER_DAY` | No | Defaults to 100. |
+| `GLOBAL_SCAN_LIMIT_PER_DAY` | No | Defaults to 500. |
+| `FEEDBACK_LIMIT_PER_MINUTE` | No | Defaults to 10. |
+| `FEEDBACK_LIMIT_PER_DAY` | No | Defaults to 50. |
+
+For UI work without a Gemini key, set `MOCK_AI=true`. Classification then uses a fixed result and no Gemini request is made.
+
+### 3. Create the schema
+
+```bash
+psql "$DATABASE_URL" -f db/schema.sql
+```
+
+Or paste `db/schema.sql` into the Neon SQL editor. Run it before the first scan.
+
+### 4. Start
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+### Commands
+
+```bash
 npm run dev
 npm run build
 npm run start
@@ -117,18 +137,36 @@ npm run lint
 npm run test:smoke
 ```
 
-The smoke test expects a running app at `http://127.0.0.1:3000` and `MOCK_AI=true`.
+### Tests
 
-`tests/visual.mjs` is an optional Playwright screenshot pass. It is not part of `npm install`; install `playwright` separately if you want to run it.
+`npm run test:smoke` runs `tests/smoke.sh` against `http://127.0.0.1:3000`. It expects a running app with `MOCK_AI=true` and a configured database. It creates a test scan and feedback in that database. It needs `bash`, `curl`, `base64`, `dd`, and `node`; on Windows, run it from Git Bash or WSL.
+
+The optional visual scripts in `tests/` use Playwright. They are not installed by `npm install`; install Playwright separately. They expect the app at `http://127.0.0.1:3000` and write screenshots to `/workspace/shots` by default. Override with `BASE_URL` and `SHOT_DIR`.
+
+## Limitations and design choices
+
+- **General guidance, not local rules.** The rules engine is fixed and covers Indonesia in general. It does not know a city, school, or waste bank's accepted list. The School and Neighborhood options only add a note. The result includes the same caveat.
+- **The model can be wrong.** Confidence is a qualitative label, not a probability. A `high` result is downgraded to `medium` if the model reports uncertainty or a close alternative. Multi-item photos are rejected rather than split.
+- **Fixed taxonomy.** The model must choose from 37 item types. There is no way to add an item from the UI. Anything that does not fit is mapped to `other` or rejected by validation.
+- **No accounts.** Anyone can scan. Feedback is one response per scan and is not tied to a user. Corrections are stored, but they do not rewrite the scan or the rankings.
+- **No review workflow.** `scan_feedback.review_status` defaults to `pending`, and nothing in the app changes it. Feedback is reported as unverified.
+- **Thresholds.** Reported correctness stays hidden until there are at least 5 feedback responses in total. An item enters the confusing ranking only after 5 responses of its own. The correctness rate uses feedback responses as the denominator, not scans.
+- **Diversion is a count, not a weight.** It counts scans in recycling, organic, textile, e-waste, and special drop-off, and excludes residual, hazardous, and unknown scans. It also excludes scans that received an incorrect feedback verdict. One scan counts as one item. It does not prove the item was sorted correctly.
+- **All-time vs. window.** The impact summary and the leaderboard are all-time. The insights activity chart, material mix, and top-items list use the selected 7- or 30-day window in Asia/Jakarta; the confusing list is all-time. The totals can differ.
+- **Rate limiting fails open.** If the rate-limit query cannot reach Postgres, the request is allowed and marked degraded. If `RATE_LIMIT_SECRET` is unset, IP hashing uses a development secret. The origin check is skipped when `APP_ORIGIN` is blank or the request has no `Origin` header.
+- **Persistence is best effort.** A scan can return a result without a `scanId` if the database write fails. That result cannot receive feedback and is not counted in the leaderboard or insights.
+- **Image limits.** HEIC is rejected with a message to change the iPhone camera format. The browser compresses to JPEG before upload, and the server applies its own size and dimension limits.
+- **Partial Indonesian translation.** The interface copy and most rules text have Indonesian translations. Model-generated text such as the material string is shown as returned, and any rule string without a translation falls back to English.
 
 ## Privacy
 
-Photos are sent to Google Gemini for analysis and are not stored by TrashDex. On the Gemini free tier, Google may use content to improve its products. Scan metadata is stored without photos. Rate limiting stores an HMAC hash of the client IP, never the raw IP.
+- Photos are sent to Google Gemini for classification. TrashDex does not store the image.
+- Scan metadata is stored without the photo: item name, item type, material, material group, waste stream, confidence, and timestamp.
+- Feedback is stored against the scan ID. It has no account or name attached.
+- Rate limiting stores an HMAC-SHA256 hash of the client IP, truncated to 32 hex characters. The raw IP is not stored.
+- The only cookie is the language preference.
+- There are no tracking scripts.
 
 ## Deployment
 
-- Live site: [https://trashdex.vercel.app](https://trashdex.vercel.app)
-- Frontend and API: Vercel, one Next.js project.
-- Database: Neon, Singapore region.
-- Set `GEMINI_API_KEY`, `DATABASE_URL`, `RATE_LIMIT_SECRET`, and `APP_ORIGIN` in Vercel environment variables.
-- Run the database schema once against Neon before the first production scan.
+The live app is at [https://trashdex.vercel.app](https://trashdex.vercel.app). Set `GEMINI_API_KEY`, `DATABASE_URL`, `RATE_LIMIT_SECRET`, and `APP_ORIGIN` in the deployment environment, and run `db/schema.sql` against the database before the first scan.
